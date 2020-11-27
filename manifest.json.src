@@ -12,7 +12,7 @@
   },
   /*#endif*/
   "description": "__MSG_extension_description__",
-  "default_locale": "en",
+  "default_locale": "ja",
   /*#if supports_svg_icons*/
   "icons": {
     "16": "images/rikaichamp-blue.svg",

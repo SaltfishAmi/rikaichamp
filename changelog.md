@@ -2,6 +2,14 @@
 
 (Nothing yet)
 
+## 0.3.1-SaltfishAmi-Custom-1 (2020-11-28)
+- Moved the part-of-speech labels to the beginning (birtles 9c21f28)
+- REMOVED the English locale
+- Set `ja` as default locale
+- Customized `ja` locale as:
+  - Removed unnecessary okurigana and suffixes
+  - Kanji-ize some katakana words (best effort)
+
 ## 0.3.1 (2020-11-26)
 
 - Fix an issue with the SVG star being too large when upgrading and the old

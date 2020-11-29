@@ -133,7 +133,7 @@
 #rikaichamp-window .w-kanji .w-head-info,
 #rikaichamp-window .w-kana .w-head-info {
   margin-left: 0.3em;
-  font-size: 10px;
+  font-size: 10.5px;
 }
 
 #rikaichamp-window .w-kanji .svgicon,
@@ -182,7 +182,7 @@
 }
 
 #rikaichamp-window .w-def .tag {
-  font-size: 10px;
+  font-size: 10.5px;
   border-radius: 3px;
   margin-left: 0.5em;
   padding: 0px 3px;
@@ -266,7 +266,7 @@
 }
 
 #rikaichamp-window .title {
-  font-size: 10px;
+  font-size: 10.5px;
   padding: 10px 10px 6px;
   border-radius: 5px 5px 0 0;
   margin-bottom: 3px;

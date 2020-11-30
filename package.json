@@ -6,6 +6,7 @@
     "build": "webpack",
     "build:chrome": "webpack --env target=chrome",
     "check-keys": "ts-node utils/check-keys",
+    "cleanup": "rm -r dist-firefox dist-firefox-package",
     "lint": "web-ext lint",
     "package": "yarn build && web-ext build --overwrite-dest -a dist-firefox-package",
     "package:chrome": "yarn build:chrome && web-ext build --overwrite-dest -s dist-chrome -a dist-chrome-package",

@@ -129,6 +129,14 @@
       }
     }
   },
+  "content_kanji_meta_kokuji": {
+    "message": "国字",
+    "description": "Meta label for kokuji (kanji originated in Japan)"
+  },
+  "content_kanji_meta_phantom_kanji": {
+    "message": "幽霊文字",
+    "description": "Meta label for phantom kanji/ghost characters"
+  },
   "content_kanji_nanori_label": {
     "message": "名乗り",
     "description": "Label given to name readings"
@@ -230,6 +238,10 @@
   "deinflect_adv": {
     "message": "副詞"
   },
+  "deinflect_alternate": {
+    "message": "又は",
+    "description": "Separator to use between de-inflection reasons when there are multiple possibilities"
+  },
   "deinflect_ba": {
     "message": "ば形"
   },
@@ -298,6 +310,9 @@
   },
   "deinflect_sugiru": {
     "message": "すぎる形"
+  },
+  "deinflect_suru_noun": {
+    "message": "-する"
   },
   "deinflect_tai": {
     "message": "たい形"
@@ -1014,6 +1029,10 @@
   "lang_label_zh": {
     "message": "中国語",
     "description": "Label used to describe senses whose source language is 'zh' (Chinese)"
+  },
+  "lang_tag": {
+    "message": "ja",
+    "description": "The BCP-47 compatible language code used to tag content from this localization"
   },
   "menu_enable_extension": {
     "message": "Rikaichampを有効にする",

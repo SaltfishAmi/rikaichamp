@@ -1,8 +1,32 @@
-## 0.3.2 (not yet released)
+## 0.3.3 (not released yet)
 
+- Made Rikaichamp include する in the match range for nouns that take
+  する (`vs` nouns)
+  thanks to [@SaltfishAmi](https://github.com/SaltfishAmi)
+  ([#180](https://github.com/birtles/rikaichamp/issues/180))
+
+## 0.3.2 (2020-12-03)
+
+- Made all kanji headwords be shown for an entry, not just the matching ones
+  ([#438](https://github.com/birtles/rikaichamp/issues/438)).
+  Non-matching kanji headwords are dimmed.
+- Added recognition of full-width alphanumerics (e.g. ８月, Ｂ級グルメ)
+  ([#96](https://github.com/birtles/rikaichamp/issues/96))
+- Allowed Rikaichamp to recognize characters in the CJK Unified Ideographs
+  Extension B range (e.g. 𠏹沢).
+- Tweaked name preview feature to match names that start with hiragana
+  (e.g. ほとけ沢)
 - Added support for recognizing き inflection of i-adjectives
   thanks to [@SaltfishAmi](https://github.com/SaltfishAmi)
-  ([#435](https://github.com/birtles/rikaichamp/issues/435)).
+  ([#435](https://github.com/birtles/rikaichamp/issues/435))
+- Fixed an issue with keydown listeners not being unregistered causing
+  the "toggle definitions" feature to misbehave
+  ([#439](https://github.com/birtles/rikaichamp/issues/439))
+- Added a few missing word entries (e.g. 印鑑)
+- Fixed popup window language tagging so Japanese and Chinese text are rendered
+  correctly in the Chinese localization.
+- Localized a few hardcoded English strings
+  with help from [@SaltfishAmi](https://github.com/SaltfishAmi)
 
 ## 0.3.1-SaltfishAmi-Custom-1 (2020-11-28)
 - Moved the part-of-speech labels to the beginning (birtles 9c21f28)

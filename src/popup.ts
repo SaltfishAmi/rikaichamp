@@ -21,6 +21,7 @@ import {
   GlossType,
   KanjiInfo,
   LangSource,
+  PartOfSpeech,
   ReadingInfo,
 } from './word-result';
 import { EraInfo, getEraInfo } from './years';
@@ -440,49 +441,173 @@ function renderStar(style: 'full' | 'hollow'): SVGElement {
 }
 
 function renderDefinitions(entry: WordResult, options: PopupOptions) {
-  const definitionsSpan = document.createElement('span');
-  definitionsSpan.classList.add('w-def');
-  // Currently all definitions are English
-  definitionsSpan.lang = 'en';
+  const definitionsDiv = document.createElement('div');
+  definitionsDiv.classList.add('w-def');
+  // Currently all definitions are in English
+  definitionsDiv.lang = 'en';
 
   if (entry.s.length === 1) {
-    definitionsSpan.append(renderSense(entry.s[0], options));
+    definitionsDiv.append(renderSense(entry.s[0], options));
   } else {
-    const definitionList = document.createElement('ol');
-    for (const sense of entry.s) {
-      const listItem = document.createElement('li');
-      listItem.append(renderSense(sense, options));
-      definitionList.append(listItem);
+    // Try grouping the definitions by part-of-speech.
+    const posGroups = options.posDisplay !== 'none' ? groupSenses(entry.s) : [];
+    const largestGroupSize = Math.max(
+      ...posGroups.map((group) => group.senses.length)
+    );
+
+    if (largestGroupSize > 1) {
+      let startIndex = 1;
+      for (const group of posGroups) {
+        // Group heading
+        const groupHeading = document.createElement('p');
+        groupHeading.classList.add('w-group-head');
+
+        for (const pos of group.pos) {
+          const posSpan = document.createElement('span');
+          posSpan.classList.add('w-pos', 'tag');
+          posSpan.lang = getLangTag();
+          posSpan.textContent =
+            browser.i18n.getMessage(`pos_label_${pos}`) || pos;
+          groupHeading.append(posSpan);
+        }
+
+        if (!group.pos.length) {
+          const posSpan = document.createElement('span');
+          posSpan.classList.add('w-pos', 'tag');
+          posSpan.textContent = '-';
+          groupHeading.append(posSpan);
+        }
+
+        definitionsDiv.append(groupHeading);
+
+        // Group items
+        const definitionList = document.createElement('ol');
+        definitionList.start = startIndex;
+        let previousSense: ExtendedSense | undefined;
+        for (const sense of group.senses) {
+          const listItem = document.createElement('li');
+          listItem.append(renderSense(sense, options, previousSense));
+          definitionList.append(listItem);
+          previousSense = sense;
+          startIndex++;
+        }
+        definitionsDiv.append(definitionList);
+      }
+    } else {
+      const definitionList = document.createElement('ol');
+      let previousSense: ExtendedSense | undefined;
+      for (const sense of entry.s) {
+        const listItem = document.createElement('li');
+        listItem.append(renderSense(sense, options, previousSense));
+        definitionList.append(listItem);
+        previousSense = sense;
+      }
+      definitionsDiv.append(definitionList);
     }
-    definitionsSpan.append(definitionList);
   }
 
-  return definitionsSpan;
+  return definitionsDiv;
+}
+
+interface PosGroup {
+  pos: Array<PartOfSpeech>;
+  senses: Array<ExtendedSense>;
+}
+
+function groupSenses(senses: Array<ExtendedSense>): Array<PosGroup> {
+  const groups: Array<PosGroup> = [];
+
+  // Set up a utility to produce a copy of a sense with the specified
+  // part(s)-of-speech removed.
+  const dropPos = (
+    sense: ExtendedSense,
+    posToDrop: PartOfSpeech | Array<PartOfSpeech> | undefined
+  ): ExtendedSense => {
+    let pos = sense.pos
+      ? sense.pos.filter((pos) =>
+          Array.isArray(posToDrop)
+            ? !posToDrop.includes(pos)
+            : pos !== posToDrop
+        )
+      : undefined;
+    if (pos && !pos.length) {
+      pos = undefined;
+    }
+
+    return { ...sense, pos };
+  };
+
+  // Do an initial grouping based on the first POS
+  let previousPos: PartOfSpeech | undefined;
+  for (const sense of senses) {
+    // Look for a match. Note that a match can be one of two kinds:
+    //
+    // a) Where we sense includes the POS we are grouping on
+    // b) Where we currently have a group where there is no POS and the sense
+    //    also has no POS.
+    if (
+      (previousPos && sense.pos && sense.pos.includes(previousPos)) ||
+      (!previousPos && groups.length && (!sense.pos || !sense.pos.length))
+    ) {
+      groups[groups.length - 1].senses.push(dropPos(sense, previousPos));
+    } else {
+      // If there was no match, start a new group
+      const thisPos = sense.pos && sense.pos.length ? sense.pos[0] : undefined;
+      const pos = thisPos ? [thisPos] : [];
+      groups.push({ pos, senses: [dropPos(sense, thisPos)] });
+      previousPos = thisPos;
+    }
+  }
+
+  // Having done the initial grouping, see if there are any additional POS that
+  // are common to all senses that we can hoist to the group heading.
+  for (const group of groups) {
+    let commonPos = group.senses[0].pos;
+    if (!commonPos) {
+      continue;
+    }
+
+    for (const sense of group.senses.slice(1)) {
+      commonPos = commonPos.filter(
+        (pos) => sense.pos && sense.pos.includes(pos)
+      );
+      if (!commonPos.length) {
+        break;
+      }
+    }
+
+    if (commonPos.length) {
+      group.pos.push(...commonPos);
+      group.senses = group.senses.map((sense) => dropPos(sense, commonPos));
+    }
+  }
+
+  return groups;
 }
 
 function renderSense(
   sense: ExtendedSense,
-  options: PopupOptions
+  options: PopupOptions,
+  previousSense?: ExtendedSense
 ): string | DocumentFragment {
   const fragment = document.createDocumentFragment();
 
-  if (sense.pos && options.posDisplay !== 'none') {
-    const posSpan = document.createElement('span');
-    posSpan.classList.add('w-pos', 'tag');
-    switch (options.posDisplay) {
-      case 'expl':
-        posSpan.append(
-          sense.pos
-            .map((pos) => browser.i18n.getMessage(`pos_label_${pos}`) || pos)
-            .join(', ')
-        );
-        break;
+  if (options.posDisplay !== 'none') {
+    for (const pos of sense.pos || []) {
+      const posSpan = document.createElement('span');
+      posSpan.classList.add('w-pos', 'tag');
+      switch (options.posDisplay) {
+        case 'expl':
+          posSpan.lang = getLangTag();
+          posSpan.append(browser.i18n.getMessage(`pos_label_${pos}`) || pos);
+          break;
 
-      case 'code':
-        posSpan.append(sense.pos.join(', '));
-        break;
+        case 'code':
+          posSpan.append(pos);
+          break;
+      }
+      fragment.append(posSpan);
     }
-    fragment.append(posSpan);
   }
 
   if (sense.field) {
@@ -497,13 +622,25 @@ function renderSense(
   }
 
   if (sense.misc) {
-    for (const misc of sense.misc) {
+    if (
+      previousSense &&
+      previousSense.misc &&
+      JSON.stringify(previousSense.misc) === JSON.stringify(sense.misc)
+    ) {
       const miscSpan = document.createElement('span');
       miscSpan.classList.add('w-misc', 'tag');
+      miscSpan.textContent = '〃';
       miscSpan.lang = getLangTag();
-      miscSpan.textContent =
-        browser.i18n.getMessage(`misc_label_${misc}`) || misc;
       fragment.append(miscSpan);
+    } else {
+      for (const misc of sense.misc) {
+        const miscSpan = document.createElement('span');
+        miscSpan.classList.add('w-misc', 'tag');
+        miscSpan.lang = getLangTag();
+        miscSpan.textContent =
+          browser.i18n.getMessage(`misc_label_${misc}`) || misc;
+        fragment.append(miscSpan);
+      }
     }
   }
 
@@ -531,26 +668,6 @@ function renderSense(
 
   if (sense.lsrc && sense.lsrc.length) {
     fragment.append(renderLangSources(sense.lsrc));
-  }
-
-  if (sense.pos && options.posDisplay !== 'none') {
-    const posSpan = document.createElement('span');
-    posSpan.classList.add('w-pos', 'tag');
-    switch (options.posDisplay) {
-      case 'expl':
-        posSpan.lang = getLangTag();
-        posSpan.append(
-          sense.pos
-            .map((pos) => browser.i18n.getMessage(`pos_label_${pos}`) || pos)
-            .join(', ')
-        );
-        break;
-
-      case 'code':
-        posSpan.append(sense.pos.join(', '));
-        break;
-    }
-    fragment.append(posSpan);
   }
 
   return fragment;

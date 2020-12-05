@@ -261,28 +261,98 @@ const yearMap = new Map<string, EraInfo>([
   ['元治', { reading: 'げんじ', start: 1864, yomi: 'Genji' }],
   ['慶応', { reading: 'けいおう', start: 1865, yomi: 'Keiō' }],
   ['明治', { reading: 'めいじ', start: 1868, yomi: 'Meiji' }],
-  ['㍾', { reading: 'めいじ', start: 1868, yomi: 'Meiji' }],
   ['大正', { reading: 'たいしょう', start: 1912, yomi: 'Taishō' }],
-  ['㍽', { reading: 'たいしょう', start: 1912, yomi: 'Taishō' }],
   ['昭和', { reading: 'しょうわ', start: 1926, yomi: 'Shōwa' }],
-  ['㍼', { reading: 'しょうわ', start: 1926, yomi: 'Shōwa' }],
   ['平成', { reading: 'へいせい', start: 1989, yomi: 'Heisei' }],
-  ['㍻', { reading: 'へいせい', start: 1989, yomi: 'Heisei' }],
   ['令和', { reading: 'れいわ', start: 2019, yomi: 'Reiwa' }],
-  ['㋿', { reading: 'れいわ', start: 2019, yomi: 'Reiwa' }],
 ]);
 
+const normalizeMap = new Map<string, string>([
+  ['㍾', '明治'],
+  ['㍽', '大正'],
+  ['㍼', '昭和'],
+  ['㍻', '平成'],
+  ['㋿', '令和'],
+]);
+
+function normalize(text: string): string {
+  const ntext = normalizeMap.get(text.substring(0, 1));
+  if (ntext !== undefined) {
+    return ntext;
+  } else {
+    return text;
+  }
+}
+
+const eraArray = Array.from(yearMap.keys());
+const yearArray = Array.from(yearMap.values()).map((value) => value.start);
+
+function toSeireki(era: string, year: number): number | null {
+  const eraInfo = yearMap.get(normalize(era));
+  if (eraInfo) {
+    return eraInfo.start + (year === 0 ? year : year - 1);
+  } else {
+    return null;
+  }
+}
+
+export function isOutOfRangeEra(
+  era: string,
+  year: number
+): boolean | undefined {
+  const seireki = toSeireki(era, year);
+  if (seireki === null) return undefined;
+  let current = eraArray.indexOf(normalize(era));
+  if (current === -1) {
+    return undefined;
+  }
+  if (current === eraArray.length - 1) {
+    // is last era
+    return false;
+  }
+  if (seireki >= yearArray[current + 1]) {
+    return true;
+  }
+  return false;
+}
+
+export function lookupEraByEra(era: string, year: number): string | null {
+  if (!isOutOfRangeEra(era, year)) {
+    return era;
+  }
+
+  const seireki = toSeireki(era, year);
+  if (seireki === null) return null;
+  let current = eraArray.indexOf(normalize(era));
+  for (let i = current + 1; i < eraArray.length; i++) {
+    const eraInfo = yearMap.get(eraArray[i]);
+    if (eraInfo !== undefined && seireki < eraInfo.start) {
+      return eraArray[i - 1];
+    }
+  }
+  return eraArray[eraArray.length - 1];
+}
+
+export function lookupEraBySeireki(year: number): string | null {
+  // Assume that most time the years are in recent eras.
+  for (let i = yearArray.length - 1; i >= 0; i--) {
+    if (year > yearArray[i]) return eraArray[i];
+  }
+  return null;
+}
+
 export function isEraName(text: string): boolean {
-  return yearMap.has(text);
+  return yearMap.has(normalize(text));
 }
 
 export function startsWithEraName(text: string): boolean {
+  const ntext = normalize(text);
   const maxEraLength = Math.max(
     ...Array.from(yearMap.keys()).map((key) => key.length)
   );
 
-  for (let i = 1; i <= text.length && i <= maxEraLength; i++) {
-    if (yearMap.has(text.substring(0, i))) {
+  for (let i = 1; i <= ntext.length && i <= maxEraLength; i++) {
+    if (yearMap.has(ntext.substring(0, i))) {
       return true;
     }
   }
@@ -291,5 +361,5 @@ export function startsWithEraName(text: string): boolean {
 }
 
 export function getEraInfo(text: string): EraInfo | undefined {
-  return yearMap.get(text);
+  return yearMap.get(normalize(text));
 }

@@ -56,7 +56,13 @@ import { SelectionMeta } from './meta';
 import { kanjiToNumber } from './numbers';
 import { renderPopup, CopyState, PopupOptions } from './popup';
 import { query, QueryResult } from './query';
-import { isEraName, startsWithEraName } from './years';
+import {
+  isOutOfRangeEra,
+  lookupEraByEra,
+  isEraName,
+  startsWithEraName,
+  getEraInfo,
+} from './years';
 
 declare global {
   interface Window {
@@ -1808,7 +1814,17 @@ function extractGetTextMetadata(text: string): SelectionMeta | undefined {
 
   const matchLen = matches.index + matches[0].length;
 
-  return { era, year, matchLen };
+  if (isOutOfRangeEra(era, year)) {
+    const realEra = lookupEraByEra(era, year);
+    if (realEra) {
+      const realEraInfo = getEraInfo(realEra);
+      if (realEraInfo !== undefined) {
+        return { era, year, matchLen, realEra };
+      }
+    }
+  }
+
+  return { era, year, matchLen, realEra: null };
 }
 
 export default RikaiContent;

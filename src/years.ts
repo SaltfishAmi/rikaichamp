@@ -284,6 +284,63 @@ function normalize(text: string): string {
   }
 }
 
+const eraArray = Array.from(yearMap.keys());
+const yearArray = Array.from(yearMap.values()).map((value) => value.start);
+
+function toSeireki(era: string, year: number): number | null {
+  const eraInfo = yearMap.get(normalize(era));
+  if (eraInfo) {
+    return eraInfo.start + (year === 0 ? year : year - 1);
+  } else {
+    return null;
+  }
+}
+
+export function isOutOfRangeEra(
+  era: string,
+  year: number
+): boolean | undefined {
+  const seireki = toSeireki(era, year);
+  if (seireki === null) return undefined;
+  let current = eraArray.indexOf(normalize(era));
+  if (current === -1) {
+    return undefined;
+  }
+  if (current === eraArray.length - 1) {
+    // is last era
+    return false;
+  }
+  if (seireki >= yearArray[current + 1]) {
+    return true;
+  }
+  return false;
+}
+
+export function lookupEraByEra(era: string, year: number): string | null {
+  if (!isOutOfRangeEra(era, year)) {
+    return era;
+  }
+
+  const seireki = toSeireki(era, year);
+  if (seireki === null) return null;
+  let current = eraArray.indexOf(normalize(era));
+  for (let i = current + 1; i < eraArray.length; i++) {
+    const eraInfo = yearMap.get(eraArray[i]);
+    if (eraInfo !== undefined && seireki < eraInfo.start) {
+      return eraArray[i - 1];
+    }
+  }
+  return eraArray[eraArray.length - 1];
+}
+
+export function lookupEraBySeireki(year: number): string | null {
+  // Assume that most time the years are in recent eras.
+  for (let i = yearArray.length - 1; i >= 0; i--) {
+    if (year > yearArray[i]) return eraArray[i];
+  }
+  return null;
+}
+
 export function isEraName(text: string): boolean {
   return yearMap.has(normalize(text));
 }

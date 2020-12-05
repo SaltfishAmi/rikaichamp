@@ -93,8 +93,12 @@ function renderWordEntries(
 
   if (options.meta) {
     const eraInfo = getEraInfo(options.meta.era);
-    if (eraInfo) {
-      container.append(renderEraInfo(options.meta, eraInfo));
+    if (options.meta.realEra !== null) {
+      const realEraInfo = getEraInfo(options.meta.realEra);
+      if (eraInfo && realEraInfo)
+        container.append(renderEraInfo(options.meta, eraInfo, realEraInfo));
+    } else if (eraInfo) {
+      container.append(renderEraInfo(options.meta, eraInfo, null));
     }
   }
 
@@ -211,7 +215,11 @@ function renderWordEntries(
   return container;
 }
 
-function renderEraInfo(meta: SelectionMeta, eraInfo: EraInfo): HTMLElement {
+function renderEraInfo(
+  meta: SelectionMeta,
+  eraInfo: EraInfo,
+  realEraInfo: EraInfo | null
+): HTMLElement {
   const metaDiv = document.createElement('div');
   metaDiv.classList.add('meta');
   metaDiv.lang = 'ja';
@@ -252,6 +260,11 @@ function renderEraInfo(meta: SelectionMeta, eraInfo: EraInfo): HTMLElement {
   const seireki =
     meta.year === 0 ? eraInfo.start : meta.year - 1 + eraInfo.start;
   seirekiSpan.append(`${seireki}年`);
+  if (realEraInfo) {
+    // a 元年 will never be a out-of-range era year
+    const realEraYear = eraInfo.start - realEraInfo.start + meta.year;
+    seirekiSpan.append(` = ${meta.realEra}${realEraYear}年`);
+  }
   metaDiv.append(seirekiSpan);
 
   return metaDiv;

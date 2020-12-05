@@ -8,4 +8,7 @@ export type SelectionMeta = {
   year: number;
   // The length of the text that matched
   matchLen: number;
+  // The real era name and year when matched an inexistent era year (such as
+  // 昭和100年 = 令和7年).
+  realEra: string | null;
 };

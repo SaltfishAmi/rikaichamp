@@ -1442,7 +1442,7 @@
     "description": "Label for hiding part-of-speech labels"
   },
   "options_show_context_menu_item": {
-    "message": "コンテキストメニューに「Rikaichampを有効する」を表示",
+    "message": "コンテキストメニューに「Rikaichampを有効にする」を表示",
     "description": "Option to enable context menu item with label `menu_enable_extension`"
   },
   "options_show_definitions": {
@@ -1809,7 +1809,7 @@
     "description": "Short part-of-speech label shown next to Godan verb - Uru old class verb (old form of Eru) entries (this doesn't appear to be used)"
   },
   "pos_label_vi": {
-    "message": "自動",
+    "message": "自",
     "description": "Short part-of-speech label shown next to intransitive verb entries"
   },
   "pos_label_vk": {

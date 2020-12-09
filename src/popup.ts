@@ -7,6 +7,8 @@ import {
   CopyKanjiKeyStrings,
   CopyNextKeyStrings,
 } from './copy-keys';
+import { groupSenses } from './grouping';
+import { getHash } from './hash';
 import { SelectionMeta } from './meta';
 import { QueryResult } from './query';
 import {
@@ -14,6 +16,7 @@ import {
   getSelectedReferenceLabels,
   ReferenceAbbreviation,
 } from './refs';
+import { isForeignObjectElement, isSvgDoc, SVG_NS } from './svg';
 import {
   ExtendedKanaEntry,
   ExtendedSense,
@@ -21,12 +24,11 @@ import {
   GlossType,
   KanjiInfo,
   LangSource,
-  PartOfSpeech,
   ReadingInfo,
 } from './word-result';
 import { EraInfo, getEraInfo } from './years';
 
-const SVG_NS = 'http://www.w3.org/2000/svg';
+import popupStyles from '../css/popup.css';
 
 export const enum CopyState {
   Inactive,
@@ -36,41 +38,221 @@ export const enum CopyState {
 }
 
 export interface PopupOptions {
-  showPriority: boolean;
-  showDefinitions: boolean;
   accentDisplay: AccentDisplay;
-  posDisplay: PartOfSpeechDisplay;
-  kanjiReferences: Array<ReferenceAbbreviation>;
-  showKanjiComponents?: boolean;
-  copyNextKey: string;
-  copyState?: CopyState;
+  container?: HTMLElement;
   // Set when copyState !== CopyState.Inactive
   copyIndex?: number;
+  copyNextKey: string;
+  copyState?: CopyState;
   // Set when copyState === CopyState.Finished
   copyType?: CopyType;
+  document?: Document;
+  kanjiReferences: Array<ReferenceAbbreviation>;
   meta?: SelectionMeta;
+  posDisplay: PartOfSpeechDisplay;
+  popupStyle: string;
+  showDefinitions: boolean;
+  showPriority: boolean;
+  showKanjiComponents?: boolean;
 }
 
 export function renderPopup(
   result: QueryResult,
   options: PopupOptions
-): HTMLElement | DocumentFragment {
-  if (result.type === 'kanji') {
-    return renderKanjiEntry(result.data, options);
+): HTMLElement {
+  const doc = options.document || document;
+  const container = options.container || getDefaultContainer(doc);
+  const windowElem = resetContainer(container, {
+    document: doc,
+    popupStyle: options.popupStyle,
+  });
+
+  // TODO: We should use `options.document` everywhere in this file and in
+  // the other methods too.
+
+  switch (result.type) {
+    case 'kanji':
+      windowElem.append(renderKanjiEntry(result.data, options));
+      break;
+
+    case 'names':
+      windowElem.append(renderNamesEntries(result.data, result.more, options));
+      break;
+
+    default:
+      windowElem.append(
+        renderWordEntries(
+          result.data,
+          result.names,
+          result.moreNames,
+          result.title,
+          result.more,
+          options
+        )
+      );
+      break;
   }
 
-  if (result.type === 'names') {
-    return renderNamesEntries(result.data, result.more, options);
+  return container;
+}
+
+function getDefaultContainer(doc: Document): HTMLElement {
+  // Look for an existing container
+  const existingContainers = doc.querySelectorAll('#rikaichamp-window');
+  if (existingContainers.length) {
+    // Drop any duplicate containers
+    while (existingContainers.length > 1) {
+      existingContainers[1].remove();
+    }
+    return existingContainers[0] as HTMLElement;
   }
 
-  return renderWordEntries(
-    result.data,
-    result.names,
-    result.moreNames,
-    result.title,
-    result.more,
-    options
-  );
+  // Create a new container
+
+  // For SVG documents we put container <div> inside a <foreignObject>.
+  let parent: Element;
+  if (isSvgDoc(doc)) {
+    const foreignObject = doc.createElementNS(SVG_NS, 'foreignObject');
+    foreignObject.setAttribute('width', '600');
+    foreignObject.setAttribute('height', '100%');
+    doc.documentElement.append(foreignObject);
+    parent = foreignObject;
+  } else {
+    parent = doc.documentElement;
+  }
+
+  // Actually create the container element
+  const container = doc.createElement('div');
+  container.id = 'rikaichamp-window';
+  parent.append(container);
+
+  // Apply minimal container styles
+  //
+  // All the interesting styles go on the inner 'window' object. The styles here
+  // are just used for positioning the pop-up correctly.
+  //
+  // First reset all styles the page may have applied.
+  container.style.all = 'initial';
+  container.style.position = 'absolute';
+  // asahi.com puts z-index: 1000000 on its banner ads. We go one better.
+  container.style.zIndex = '1000001';
+
+  // Set initial position
+  container.style.top = '5px';
+  container.style.left = '5px';
+  container.style.minWidth = '100px';
+
+  // Make sure the container too doesn't receive pointer events
+  container.style.pointerEvents = 'none';
+
+  return container;
+}
+
+function resetContainer(
+  container: HTMLElement,
+  { document: doc, popupStyle }: { document: Document; popupStyle: string }
+): HTMLElement {
+  if (!container.shadowRoot) {
+    container.attachShadow({ mode: 'open' });
+
+    // Add <style>
+    const style = doc.createElement('style');
+    style.textContent = popupStyles;
+    style.dataset.hash = getStyleHash();
+    container.shadowRoot!.append(style);
+  } else {
+    // Reset content
+    for (const child of container.shadowRoot!.children) {
+      if (child.tagName !== 'STYLE') {
+        child.remove();
+      }
+    }
+
+    // Reset style
+    let existingStyle = container.shadowRoot.querySelector('style');
+    if (existingStyle && existingStyle.dataset.hash !== getStyleHash()) {
+      existingStyle.remove();
+      existingStyle = null;
+    }
+
+    if (!existingStyle) {
+      const style = doc.createElement('style');
+      style.textContent = popupStyles;
+      style.dataset.hash = getStyleHash();
+      container.shadowRoot!.append(style);
+    }
+  }
+
+  const windowDiv = doc.createElement('div');
+  windowDiv.classList.add('window', `-${popupStyle}`);
+  container.shadowRoot!.append(windowDiv);
+
+  return windowDiv;
+}
+
+let styleHash: string | undefined;
+
+function getStyleHash(): string {
+  if (!styleHash) {
+    styleHash = getHash(popupStyles.toString());
+  }
+
+  return styleHash;
+}
+
+export function isPopupVisible(): boolean {
+  const popup = document.getElementById('rikaichamp-window');
+  if (!popup || !popup.shadowRoot) {
+    return false;
+  }
+
+  const windowElem = popup.shadowRoot.querySelector('.window');
+  return !!windowElem && !windowElem.classList.contains('hidden');
+}
+
+export function hidePopup() {
+  const popup = document.getElementById('rikaichamp-window');
+  if (!popup || !popup.shadowRoot) {
+    return;
+  }
+
+  const windowElem = popup.shadowRoot.querySelector('.window');
+  if (windowElem) {
+    windowElem.classList.add('hidden');
+  }
+}
+
+export function removePopup() {
+  let popup = document.getElementById('rikaichamp-window');
+  while (popup) {
+    // If we are in an SVG document, remove the wrapping <foreignObject>.
+    if (isForeignObjectElement(popup.parentElement)) {
+      popup.parentElement.remove();
+    } else {
+      popup.remove();
+    }
+    popup = document.getElementById('rikaichamp-window');
+  }
+}
+
+export function setPopupStyle(style: string) {
+  const popup = document.getElementById('rikaichamp-window');
+  if (!popup || !popup.shadowRoot) {
+    return;
+  }
+
+  const windowElem = popup.shadowRoot.querySelector('.window');
+  if (!windowElem) {
+    return;
+  }
+
+  for (const className of windowElem.classList.values()) {
+    if (className.startsWith('-')) {
+      windowElem.classList.remove(className);
+    }
+  }
+
+  windowElem.classList.add(`-${style}`);
 }
 
 function renderWordEntries(
@@ -431,15 +613,6 @@ function renderStar(style: 'full' | 'hollow'): SVGElement {
   svg.classList.add('svgicon');
   svg.style.opacity = '0.5';
   svg.setAttribute('viewBox', '0 0 98.6 93.2');
-  // Set the width/height as attributes too. Even though the stylesheet should
-  // do this, if the user has just upgraded, the new stylesheet won't be applied
-  // to existing pages until they are reloaded.
-  //
-  // Ulimately we should fix this when we move the Rikaichamp popup to shadow
-  // DOM and instantiate the stylesheet there, but for now we just try to limit
-  // the damage from upgrading.
-  svg.setAttribute('width', '12');
-  svg.setAttribute('height', '12');
 
   const path = document.createElementNS(SVG_NS, 'path');
   path.setAttribute(
@@ -464,11 +637,19 @@ function renderDefinitions(entry: WordResult, options: PopupOptions) {
   } else {
     // Try grouping the definitions by part-of-speech.
     const posGroups = options.posDisplay !== 'none' ? groupSenses(entry.s) : [];
-    const largestGroupSize = Math.max(
-      ...posGroups.map((group) => group.senses.length)
-    );
 
-    if (largestGroupSize > 1) {
+    // Determine if the grouping makes sense
+    //
+    // If the group headings make the number of lines used to represent
+    // all the senses (ignoring word wrapping) grow by more than 50%, we should
+    // skip using groups. This will typically be the case where there are no
+    // common parts-of-speech, or at least very few.
+    const linesWithGrouping = posGroups.length + entry.s.length;
+    const linesWithoutGrouping = entry.s.length;
+    const useGroups =
+      posGroups.length && linesWithGrouping / linesWithoutGrouping <= 1.5;
+
+    if (useGroups) {
       let startIndex = 1;
       for (const group of posGroups) {
         // Group heading
@@ -478,13 +659,27 @@ function renderDefinitions(entry: WordResult, options: PopupOptions) {
         for (const pos of group.pos) {
           const posSpan = document.createElement('span');
           posSpan.classList.add('w-pos', 'tag');
-          posSpan.lang = getLangTag();
-          posSpan.textContent =
-            browser.i18n.getMessage(`pos_label_${pos}`) || pos;
+          if (options.posDisplay === 'expl') {
+            posSpan.lang = getLangTag();
+            posSpan.textContent =
+              browser.i18n.getMessage(`pos_label_${pos}`) || pos;
+          } else {
+            posSpan.textContent = pos;
+          }
           groupHeading.append(posSpan);
         }
 
-        if (!group.pos.length) {
+        for (const misc of group.misc) {
+          const miscSpan = document.createElement('span');
+          miscSpan.classList.add('w-misc', 'tag');
+          miscSpan.lang = getLangTag();
+          miscSpan.textContent =
+            browser.i18n.getMessage(`misc_label_${misc}`) || misc;
+          groupHeading.append(miscSpan);
+        }
+
+        // If there is no group heading, just add a '-' placeholder
+        if (!group.pos.length && !group.misc.length) {
           const posSpan = document.createElement('span');
           posSpan.classList.add('w-pos', 'tag');
           posSpan.textContent = '-';
@@ -496,106 +691,26 @@ function renderDefinitions(entry: WordResult, options: PopupOptions) {
         // Group items
         const definitionList = document.createElement('ol');
         definitionList.start = startIndex;
-        let previousSense: ExtendedSense | undefined;
         for (const sense of group.senses) {
           const listItem = document.createElement('li');
-          listItem.append(renderSense(sense, options, previousSense));
+          listItem.append(renderSense(sense, options));
           definitionList.append(listItem);
-          previousSense = sense;
           startIndex++;
         }
         definitionsDiv.append(definitionList);
       }
     } else {
       const definitionList = document.createElement('ol');
-      let previousSense: ExtendedSense | undefined;
       for (const sense of entry.s) {
         const listItem = document.createElement('li');
-        listItem.append(renderSense(sense, options, previousSense));
+        listItem.append(renderSense(sense, options));
         definitionList.append(listItem);
-        previousSense = sense;
       }
       definitionsDiv.append(definitionList);
     }
   }
 
   return definitionsDiv;
-}
-
-interface PosGroup {
-  pos: Array<PartOfSpeech>;
-  senses: Array<ExtendedSense>;
-}
-
-function groupSenses(senses: Array<ExtendedSense>): Array<PosGroup> {
-  const groups: Array<PosGroup> = [];
-
-  // Set up a utility to produce a copy of a sense with the specified
-  // part(s)-of-speech removed.
-  const dropPos = (
-    sense: ExtendedSense,
-    posToDrop: PartOfSpeech | Array<PartOfSpeech> | undefined
-  ): ExtendedSense => {
-    let pos = sense.pos
-      ? sense.pos.filter((pos) =>
-          Array.isArray(posToDrop)
-            ? !posToDrop.includes(pos)
-            : pos !== posToDrop
-        )
-      : undefined;
-    if (pos && !pos.length) {
-      pos = undefined;
-    }
-
-    return { ...sense, pos };
-  };
-
-  // Do an initial grouping based on the first POS
-  let previousPos: PartOfSpeech | undefined;
-  for (const sense of senses) {
-    // Look for a match. Note that a match can be one of two kinds:
-    //
-    // a) Where we sense includes the POS we are grouping on
-    // b) Where we currently have a group where there is no POS and the sense
-    //    also has no POS.
-    if (
-      (previousPos && sense.pos && sense.pos.includes(previousPos)) ||
-      (!previousPos && groups.length && (!sense.pos || !sense.pos.length))
-    ) {
-      groups[groups.length - 1].senses.push(dropPos(sense, previousPos));
-    } else {
-      // If there was no match, start a new group
-      const thisPos = sense.pos && sense.pos.length ? sense.pos[0] : undefined;
-      const pos = thisPos ? [thisPos] : [];
-      groups.push({ pos, senses: [dropPos(sense, thisPos)] });
-      previousPos = thisPos;
-    }
-  }
-
-  // Having done the initial grouping, see if there are any additional POS that
-  // are common to all senses that we can hoist to the group heading.
-  for (const group of groups) {
-    let commonPos = group.senses[0].pos;
-    if (!commonPos) {
-      continue;
-    }
-
-    for (const sense of group.senses.slice(1)) {
-      commonPos = commonPos.filter(
-        (pos) => sense.pos && sense.pos.includes(pos)
-      );
-      if (!commonPos.length) {
-        break;
-      }
-    }
-
-    if (commonPos.length) {
-      group.pos.push(...commonPos);
-      group.senses = group.senses.map((sense) => dropPos(sense, commonPos));
-    }
-  }
-
-  return groups;
 }
 
 function renderSense(
@@ -844,9 +959,6 @@ function renderName(entry: NameResult): HTMLElement {
   const definitionBlock = document.createElement('div');
   definitionBlock.classList.add('w-def');
   for (const tr of entry.tr) {
-    if (definitionBlock.children.length) {
-      definitionBlock.append(' ');
-    }
     definitionBlock.append(renderNameTranslation(tr));
   }
   entryDiv.append(definitionBlock);
@@ -855,7 +967,7 @@ function renderName(entry: NameResult): HTMLElement {
 }
 
 function renderNameTranslation(tr: NameTranslation): HTMLSpanElement {
-  const definitionSpan = document.createElement('span');
+  const definitionSpan = document.createElement('div');
   // ENAMDICT only has English glosses
   definitionSpan.lang = 'en';
   definitionSpan.append(tr.det.join(', '));
@@ -1443,5 +1555,3 @@ function getLangTag() {
   }
   return langTag;
 }
-
-export default renderPopup;

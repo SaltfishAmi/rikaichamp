@@ -1,5 +1,12 @@
-## 0.3.3 (not released yet)
+## 0.3.4 (not released yet)
 
+(Nothing yet)
+
+## 0.3.3 (2020-12-09)
+
+- Moved display of part-of-speech labels to the start of the definition
+  and grouped them when they are repetitive
+  ([#436](https://github.com/birtles/rikaichamp/issues/436))
 - Made Rikaichamp include する in the match range for nouns that take
   する (`vs` nouns)
   thanks to [@SaltfishAmi](https://github.com/SaltfishAmi)
@@ -10,6 +17,10 @@
 - Stop trying to convert years written as a transliteration of
   digits (e.g. 令和七九年 instead of 令和七十九年)
   thanks to [@SaltfishAmi](https://github.com/SaltfishAmi)
+- Moved Rikaichamp popup to an isolated shadow DOM tree so that it should
+  be more robust when used on pages that set styles in ways that conflict
+  with Rikaichamp's styles
+  ([#144](https://github.com/birtles/rikaichamp/issues/144))
 
 ## 0.3.2 (2020-12-03)
 

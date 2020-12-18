@@ -4,23 +4,23 @@
     "description": "Tooltip for toolbar button when checking for updates."
   },
   "command_toggle_description": {
-    "message": "Rikaichamp入・切を切り替える",
+    "message": "Rikaichampオン・オフを切り替える",
     "description": "Explanation of toolbar button to turn Rikaichamp on or off"
   },
   "command_toggle_disabled": {
-    "message": "Rikaichamp 無効",
+    "message": "Rikaichamp オフ",
     "description": "Tooltip for toolbar button when disabled."
   },
   "command_toggle_downloading": {
-    "message": "辞書データを読込中...",
+    "message": "辞書データを読み込み中...",
     "description": "Tooltip for toolbar button when downloading updates."
   },
   "command_toggle_enabled": {
-    "message": "Rikaichamp 有効",
+    "message": "Rikaichamp オン",
     "description": "Tooltip for toolbar button when enabled."
   },
   "command_toggle_loading": {
-    "message": "Rikaichamp 読込中...",
+    "message": "Rikaichamp ロード中...",
     "description": "Tooltip for toolbar button when loading."
   },
   "command_toggle_update_error": {
@@ -164,25 +164,25 @@
     "description": "The title used at the top of the popup when showing the names dictionary"
   },
   "content_names_tag_char": {
-    "message": "Character"
+    "message": "キャラクター"
   },
   "content_names_tag_company": {
     "message": "社名"
   },
   "content_names_tag_creat": {
-    "message": "生物"
+    "message": "生き物"
   },
   "content_names_tag_dei": {
     "message": "神"
   },
   "content_names_tag_ev": {
-    "message": "事件"
+    "message": "イベント"
   },
   "content_names_tag_fem": {
     "message": "女"
   },
   "content_names_tag_fict": {
-    "message": "創作"
+    "message": "フィクション"
   },
   "content_names_tag_given": {
     "message": "名"
@@ -197,7 +197,7 @@
     "message": "神話"
   },
   "content_names_tag_obj": {
-    "message": "物品"
+    "message": "オブジェ"
   },
   "content_names_tag_ok": {
     "message": "旧"
@@ -221,7 +221,7 @@
     "message": "宗教"
   },
   "content_names_tag_serv": {
-    "message": "服務"
+    "message": "サービス"
   },
   "content_names_tag_station": {
     "message": "駅"
@@ -439,11 +439,11 @@
     "description": "Label applied to senses with the 'agric' field"
   },
   "field_label_anat": {
-    "message": "解剖",
+    "message": "解剖学",
     "description": "Label applied to senses with the 'anat' field"
   },
   "field_label_archeol": {
-    "message": "考古",
+    "message": "考古学",
     "description": "Label applied to senses with the 'archeol' field"
   },
   "field_label_archit": {
@@ -471,7 +471,7 @@
     "description": "Label applied to senses with the 'baseb' field"
   },
   "field_label_biochem": {
-    "message": "生化",
+    "message": "生化学",
     "description": "Label applied to senses with the 'biochem' field"
   },
   "field_label_biol": {
@@ -487,7 +487,7 @@
     "description": "Label applied to senses with the 'Buddh' field"
   },
   "field_label_bus": {
-    "message": "事務",
+    "message": "ビジネス",
     "description": "Label applied to senses with the 'bus' field"
   },
   "field_label_chem": {
@@ -495,11 +495,11 @@
     "description": "Label applied to senses with the 'chem' field"
   },
   "field_label_Christn": {
-    "message": "基督教",
+    "message": "キリスト教",
     "description": "Label applied to senses with the 'Christn' field"
   },
   "field_label_comp": {
-    "message": "計算機",
+    "message": "コンピューター",
     "description": "Label applied to senses with the 'comp' field"
   },
   "field_label_cryst": {
@@ -507,7 +507,7 @@
     "description": "Label applied to senses with the 'cryst' field"
   },
   "field_label_ecol": {
-    "message": "生態",
+    "message": "生態学",
     "description": "Label applied to senses with the 'ecol' field"
   },
   "field_label_econ": {
@@ -519,7 +519,7 @@
     "description": "Label applied to senses with the 'elec' field"
   },
   "field_label_electr": {
-    "message": "電子",
+    "message": "電子工学",
     "description": "Label applied to senses with the 'electr' field"
   },
   "field_label_embryo": {
@@ -551,27 +551,27 @@
     "description": "Label applied to senses with the 'gardn' field"
   },
   "field_label_genet": {
-    "message": "遺伝",
+    "message": "遺伝学",
     "description": "Label applied to senses with the 'genet' field"
   },
   "field_label_geogr": {
-    "message": "地理",
+    "message": "地理学",
     "description": "Label applied to senses with the 'geogr' field"
   },
   "field_label_geol": {
-    "message": "地質",
+    "message": "地質学",
     "description": "Label applied to senses with the 'geol' field"
   },
   "field_label_geom": {
-    "message": "幾何",
+    "message": "幾何学",
     "description": "Label applied to senses with the 'geom' field"
   },
   "field_label_go": {
-    "message": "囲碁",
+    "message": "碁",
     "description": "Label applied to senses with the 'go' field"
   },
   "field_label_golf": {
-    "message": "Golf",
+    "message": "ゴルフ",
     "description": "Label applied to senses with the 'golf' field"
   },
   "field_label_gramm": {
@@ -579,7 +579,7 @@
     "description": "Label applied to senses with the 'gramm' field"
   },
   "field_label_grmyth": {
-    "message": "希臘神話",
+    "message": "ギ神",
     "description": "Label applied to senses with the 'grmyth' field"
   },
   "field_label_hanaf": {
@@ -643,7 +643,7 @@
     "description": "Label applied to senses with the 'paleo' field"
   },
   "field_label_pathol": {
-    "message": "病理",
+    "message": "病理学",
     "description": "Label applied to senses with the 'pathol' field"
   },
   "field_label_pharm": {
@@ -659,11 +659,11 @@
     "description": "Label applied to senses with the 'photo' field"
   },
   "field_label_physics": {
-    "message": "物理",
+    "message": "物理学",
     "description": "Label applied to senses with the 'physics' field"
   },
   "field_label_physiol": {
-    "message": "生理",
+    "message": "生理学",
     "description": "Label applied to senses with the 'physiol' field"
   },
   "field_label_print": {
@@ -671,7 +671,7 @@
     "description": "Label applied to senses with the 'print' field"
   },
   "field_label_psych": {
-    "message": "心理",
+    "message": "心理学",
     "description": "Label applied to senses with the 'psych' field"
   },
   "field_label_Shinto": {
@@ -683,11 +683,11 @@
     "description": "Label applied to senses with the 'shogi' field"
   },
   "field_label_sports": {
-    "message": "体育",
+    "message": "スポーツ",
     "description": "Label applied to senses with the 'sports' field"
   },
   "field_label_stat": {
-    "message": "統計",
+    "message": "統計学",
     "description": "Label applied to senses with the 'stat' field"
   },
   "field_label_sumo": {
@@ -703,7 +703,7 @@
     "description": "Label applied to senses with the 'tradem' field"
   },
   "field_label_vidg": {
-    "message": "遊戯",
+    "message": "ゲーム",
     "description": "Label applied to senses with the 'vidg' field"
   },
   "field_label_zool": {
@@ -715,7 +715,7 @@
     "description": "Short annotation used to represent the expl (explanation) gloss type when copying entries to the clipboard"
   },
   "gloss_type_label_fig": {
-    "message": "比喩",
+    "message": "比喩的",
     "description": "Short annotation used to represent the expl (explanation) gloss type when copying entries to the clipboard"
   },
   "gloss_type_label_lit": {
@@ -727,7 +727,7 @@
     "description": "Short annotation used to represent the expl (explanation) gloss type when copying entries to the clipboard"
   },
   "gloss_type_short_fig": {
-    "message": "比喩",
+    "message": "比喩的",
     "description": "Short annotation used to represent the expl (explanation) gloss type when copying entries to the clipboard"
   },
   "gloss_type_short_lit": {
@@ -763,7 +763,7 @@
     "description": "Short annotation given to kanji headwords that use out-dated kanji"
   },
   "head_info_label_ukanji": {
-    "message": "かな表記多",
+    "message": "かな表記が多い",
     "description": "Short annotation given to kana headwords that are normally written in kanji alone"
   },
   "lang_label_af": {
@@ -791,7 +791,7 @@
     "description": "Label used to describe senses whose source language is 'arn' (Mapuche)"
   },
   "lang_label_bg": {
-    "message": "勃牙利語",
+    "message": "ブルガリア語",
     "description": "Label used to describe senses whose source language is 'bg' (Bulgarian)"
   },
   "lang_label_bnt": {
@@ -799,7 +799,7 @@
     "description": "Label used to describe senses whose source language is 'bnt' (Bantu)"
   },
   "lang_label_bo": {
-    "message": "西蔵語",
+    "message": "チベット語",
     "description": "Label used to describe senses whose source language is 'bo' (Tibetan)"
   },
   "lang_label_br": {
@@ -815,15 +815,15 @@
     "description": "Label used to describe senses whose source language is 'cs' (Czech)"
   },
   "lang_label_da": {
-    "message": "丁抹語",
+    "message": "デンマーク語",
     "description": "Label used to describe senses whose source language is 'da' (Danish)"
   },
   "lang_label_de": {
-    "message": "独逸語",
+    "message": "ドイツ語",
     "description": "Label used to describe senses whose source language is 'de' (German)"
   },
   "lang_label_el": {
-    "message": "希臘語",
+    "message": "ギリシャ語",
     "description": "Label used to describe senses whose source language is 'el' (Greek)"
   },
   "lang_label_en": {
@@ -835,7 +835,7 @@
     "description": "Label used to describe senses whose source language is 'eo' (Esperanto)"
   },
   "lang_label_es": {
-    "message": "西班牙語",
+    "message": "スペイン語",
     "description": "Label used to describe senses whose source language is 'es' (Spanish)"
   },
   "lang_label_et": {
@@ -843,19 +843,19 @@
     "description": "Label used to describe senses whose source language is 'et' (Estonian)"
   },
   "lang_label_fa": {
-    "message": "波斯語",
+    "message": "ペルシャ語",
     "description": "Label used to describe senses whose source language is 'fa' (Persian)"
   },
   "lang_label_fi": {
-    "message": "芬蘭語",
+    "message": "フィンランド語",
     "description": "Label used to describe senses whose source language is 'fi' (Finnish)"
   },
   "lang_label_fil": {
-    "message": "比律賓語",
+    "message": "フィリピノ語",
     "description": "Label used to describe senses whose source language is 'fil' (Filipino)"
   },
   "lang_label_fr": {
-    "message": "仏蘭西語",
+    "message": "フランス語",
     "description": "Label used to describe senses whose source language is 'fr' (French)"
   },
   "lang_label_gl": {
@@ -863,11 +863,11 @@
     "description": "Label used to describe senses whose source language is 'gl' (Galician)"
   },
   "lang_label_grc": {
-    "message": "古代希臘語",
+    "message": "古代ギリシャ語",
     "description": "Label used to describe senses whose source language is 'grc' (Ancient Greek)"
   },
   "lang_label_haw": {
-    "message": "布哇語",
+    "message": "ハワイ語",
     "description": "Label used to describe senses whose source language is 'haw' (Hawaiian)"
   },
   "lang_label_he": {
@@ -883,7 +883,7 @@
     "description": "Label used to describe senses whose source language is 'hr' (Croatian)"
   },
   "lang_label_hu": {
-    "message": "洪牙利語",
+    "message": "ハンガリー語",
     "description": "Label used to describe senses whose source language is 'hu' (Hungarian)"
   },
   "lang_label_id": {
@@ -895,7 +895,7 @@
     "description": "Label used to describe senses whose source language is 'is' (Icelandic)"
   },
   "lang_label_it": {
-    "message": "伊太利語",
+    "message": "イタリア語",
     "description": "Label used to describe senses whose source language is 'it' (Italian)"
   },
   "lang_label_ka": {
@@ -903,7 +903,7 @@
     "description": "Label used to describe senses whose source language is 'ka' (Georgian)"
   },
   "lang_label_km": {
-    "message": "柬埔寨語",
+    "message": "クメール語",
     "description": "Label used to describe senses whose source language is 'km' (Khmer)"
   },
   "lang_label_ko": {
@@ -943,31 +943,31 @@
     "description": "Label used to describe senses whose source language is 'ms' (Malay)"
   },
   "lang_label_my": {
-    "message": "緬甸語",
+    "message": "ビルマ語",
     "description": "Label used to describe senses whose source language is 'my' (Burmese)"
   },
   "lang_label_nl": {
-    "message": "阿蘭陀語",
+    "message": "オランダ語",
     "description": "Label used to describe senses whose source language is 'nl' (Dutch)"
   },
   "lang_label_no": {
-    "message": "諾威語",
+    "message": "ノルウェー語",
     "description": "Label used to describe senses whose source language is 'no' (Norwegian)"
   },
   "lang_label_pl": {
-    "message": "波蘭語",
+    "message": "ポーランド語",
     "description": "Label used to describe senses whose source language is 'pl' (Polish)"
   },
   "lang_label_pt": {
-    "message": "葡萄牙語",
+    "message": "ポルトガル語",
     "description": "Label used to describe senses whose source language is 'pt' (Portuguese)"
   },
   "lang_label_ro": {
-    "message": "羅馬尼亜語",
+    "message": "ルーマニア語",
     "description": "Label used to describe senses whose source language is 'ro' (Romanian)"
   },
   "lang_label_ru": {
-    "message": "露西亜語",
+    "message": "ロシア語",
     "description": "Label used to describe senses whose source language is 'ru' (Russian)"
   },
   "lang_label_sa": {
@@ -987,7 +987,7 @@
     "description": "Label used to describe senses whose source language is 'so' (Somali)"
   },
   "lang_label_sv": {
-    "message": "瑞典語",
+    "message": "スウェーデン語",
     "description": "Label used to describe senses whose source language is 'sv' (Swedish)"
   },
   "lang_label_sw": {
@@ -1003,7 +1003,7 @@
     "description": "Label used to describe senses whose source language is 'th' (Thai)"
   },
   "lang_label_tr": {
-    "message": "土耳古語",
+    "message": "トルコ語",
     "description": "Label used to describe senses whose source language is 'tr' (Turkish)"
   },
   "lang_label_ty": {
@@ -1015,7 +1015,7 @@
     "description": "Label used to describe senses whose source language is 'ur' (Urdu)"
   },
   "lang_label_vi": {
-    "message": "越南語",
+    "message": "ベトナム語",
     "description": "Label used to describe senses whose source language is 'vi' (Vietnamese)"
   },
   "lang_label_wasei": {
@@ -1051,7 +1051,7 @@
     "description": "Label used to describe senses with the 'chn' (children) annotation"
   },
   "misc_label_col": {
-    "message": "口語",
+    "message": "俗語",
     "description": "Label used to describe senses with the 'col' (colloquialism) annotation"
   },
   "misc_label_company": {
@@ -1063,7 +1063,7 @@
     "description": "Label used to describe senses with the 'dated' (dated) annotation"
   },
   "misc_label_derog": {
-    "message": "軽蔑",
+    "message": "軽蔑語",
     "description": "Label used to describe senses with the 'derog' (derogatory) annotation"
   },
   "misc_label_fam": {
@@ -1083,11 +1083,11 @@
     "description": "Label used to describe senses with the 'hist' (historical) annotation"
   },
   "misc_label_hon": {
-    "message": "尊敬",
+    "message": "尊敬語",
     "description": "Label used to describe senses with the 'hon' (honorific) annotation"
   },
   "misc_label_hum": {
-    "message": "謙譲",
+    "message": "謙譲語",
     "description": "Label used to describe senses with the 'hum' (humble) annotation"
   },
   "misc_label_id": {
@@ -1102,7 +1102,7 @@
     "message": "文語",
     "description": "Label used to describe senses with the 'litf' (literary) annotation"
   },
-  "misc_label_m-sl": {
+  "misc_label_m_sl": {
     "message": "漫画俗語",
     "description": "Label used to describe senses with the 'm-sl' (manga slang) annotation"
   },
@@ -1110,8 +1110,8 @@
     "message": "男性",
     "description": "Label used to describe senses with the 'male' (male) annotation"
   },
-  "misc_label_net-sl": {
-    "message": "ネット俗語",
+  "misc_label_net_sl": {
+    "message": "インターネットスラング",
     "description": "Label used to describe senses with the 'net-sl' (Internet slang) annotation"
   },
   "misc_label_obs": {
@@ -1122,8 +1122,8 @@
     "message": "難解",
     "description": "Label used to describe senses with the 'obsc' (obscure) annotation"
   },
-  "misc_label_on-mim": {
-    "message": "擬音",
+  "misc_label_on_mim": {
+    "message": "擬音語",
     "description": "Label used to describe senses with the 'on-mim' (onomatopoeia) annotation"
   },
   "misc_label_organization": {
@@ -1143,7 +1143,7 @@
     "description": "Label used to describe senses with the 'poet' (poetical) annotation"
   },
   "misc_label_pol": {
-    "message": "丁寧",
+    "message": "丁寧語",
     "description": "Label used to describe senses with the 'pol' (polite) annotation"
   },
   "misc_label_product": {
@@ -1151,7 +1151,7 @@
     "description": "Label used to describe senses with the 'product' (product) annotation"
   },
   "misc_label_proverb": {
-    "message": "諺",
+    "message": "ことわざ",
     "description": "Label used to describe senses with the 'proverb' (proverb) annotation"
   },
   "misc_label_quote": {
@@ -1163,11 +1163,11 @@
     "description": "Label used to describe senses with the 'rare' (rare) annotation"
   },
   "misc_label_sens": {
-    "message": "Sensitive",
+    "message": "センシティブ",
     "description": "Label used to describe senses with the 'sens' (sensitive) annotation"
   },
   "misc_label_sl": {
-    "message": "俗語",
+    "message": "スラング",
     "description": "Label used to describe senses with the 'sl' (slang) annotation"
   },
   "misc_label_station": {
@@ -1179,7 +1179,7 @@
     "description": "Label used to describe senses with the 'surname' (surname) annotation"
   },
   "misc_label_uk": {
-    "message": "かな表記多",
+    "message": "かな表記が多い",
     "description": "Label used to describe senses with the 'uk' (usually kana) annotation"
   },
   "misc_label_unclass": {
@@ -1195,7 +1195,7 @@
     "description": "Label used to describe senses with the 'work' (work) annotation"
   },
   "misc_label_X": {
-    "message": "成人",
+    "message": "アダルト",
     "description": "Label used to describe senses with the 'X' (X-rated) annotation"
   },
   "misc_label_yoji": {
@@ -1442,7 +1442,7 @@
     "description": "Label for hiding part-of-speech labels"
   },
   "options_show_context_menu_item": {
-    "message": "コンテキストメニューに「Rikaichampを有効にする」を表示",
+    "message": "コンテキストメニューに「Rikaichampを有効する」を表示",
     "description": "Option to enable context menu item with label `menu_enable_extension`"
   },
   "options_show_definitions": {
@@ -1480,55 +1480,55 @@
   "options_warning_language_is_kanji_only": {
     "message": "この設定は現在漢字辞典のみに適用されます。"
   },
-  "pos_label_adj-f": {
+  "pos_label_adj_f": {
     "message": "連体",
     "description": "Short part-of-speech label shown next to noun or verb entries acting prenominally"
   },
-  "pos_label_adj-i": {
+  "pos_label_adj_i": {
     "message": "形",
     "description": "Short part-of-speech label shown next to adjective (keiyoushi) entries"
   },
-  "pos_label_adj-ix": {
+  "pos_label_adj_ix": {
     "message": "形（よい）",
     "description": "Short part-of-speech label shown next to adjective (keiyoushi) - yoi/ii class entries"
   },
-  "pos_label_adj-kari": {
-    "message": "形カリ",
+  "pos_label_adj_kari": {
+    "message": "形（カリ）",
     "description": "Short part-of-speech label shown next to 'kari' adjective (archaic) entries"
   },
-  "pos_label_adj-ku": {
-    "message": "形ク",
+  "pos_label_adj_ku": {
+    "message": "形（ク）",
     "description": "Short part-of-speech label shown next to 'ku' adjective (archaic) entries"
   },
-  "pos_label_adj-na": {
+  "pos_label_adj_na": {
     "message": "形動",
     "description": "Short part-of-speech label shown next to adjectival nouns or quasi-adjectives (keiyodoshi) entries"
   },
-  "pos_label_adj-nari": {
-    "message": "形動ナリ",
+  "pos_label_adj_nari": {
+    "message": "形動（なり）",
     "description": "Short part-of-speech label shown next to archaic/formal form of na-adjective entries"
   },
-  "pos_label_adj-no": {
+  "pos_label_adj_no": {
     "message": "ノ形容",
     "description": "Short part-of-speech label shown next to nouns which may take the genitive case particle 'no' entries"
   },
-  "pos_label_adj-pn": {
+  "pos_label_adj_pn": {
     "message": "連体",
     "description": "Short part-of-speech label shown next to pre-noun adjectival (rentaishi) entries"
   },
-  "pos_label_adj-shiku": {
-    "message": "形シク",
+  "pos_label_adj_shiku": {
+    "message": "形（シク）",
     "description": "Short part-of-speech label shown next to 'shiku' adjective (archaic) entries"
   },
-  "pos_label_adj-t": {
-    "message": "形動タル",
+  "pos_label_adj_t": {
+    "message": "形動（タル）",
     "description": "Short part-of-speech label shown next to 'taru' adjective entries"
   },
   "pos_label_adv": {
     "message": "副",
     "description": "Short part-of-speech label shown next to adverb (fukushi) entries"
   },
-  "pos_label_adv-to": {
+  "pos_label_adv_to": {
     "message": "副ト",
     "description": "Short part-of-speech label shown next to adverb taking the 'to' particle entries"
   },
@@ -1536,11 +1536,11 @@
     "message": "助辞",
     "description": "Short part-of-speech label shown next to auxiliary entries"
   },
-  "pos_label_aux-adj": {
+  "pos_label_aux_adj": {
     "message": "補助形容",
     "description": "Short part-of-speech label shown next to auxiliary adjective entries"
   },
-  "pos_label_aux-v": {
+  "pos_label_aux_v": {
     "message": "助動",
     "description": "Short part-of-speech label shown next to auxiliary verb entries"
   },
@@ -1553,7 +1553,7 @@
     "description": "Short part-of-speech label shown next to copula entries"
   },
   "pos_label_ctr": {
-    "message": "助数",
+    "message": "助数詞",
     "description": "Short part-of-speech label shown next to counter entries"
   },
   "pos_label_exp": {
@@ -1561,35 +1561,35 @@
     "description": "Short part-of-speech label shown next to expressions (phrases, clauses, etc.) entries"
   },
   "pos_label_int": {
-    "message": "感動",
+    "message": "感動詞",
     "description": "Short part-of-speech label shown next to interjection (kandoushi) entries"
   },
   "pos_label_n": {
     "message": "名",
     "description": "Short part-of-speech label shown next to noun (common) (futsuumeishi) entries"
   },
-  "pos_label_n-adv": {
-    "message": "副名",
+  "pos_label_n_adv": {
+    "message": "副詞的名",
     "description": "Short part-of-speech label shown next to adverbial noun (fukushitekimeishi) entries"
   },
-  "pos_label_n-pr": {
-    "message": "固有",
+  "pos_label_n_pr": {
+    "message": "固有名詞",
     "description": "Short part-of-speech label shown next to proper noun entries"
   },
-  "pos_label_n-pref": {
+  "pos_label_n_pref": {
     "message": "接頭",
     "description": "Short part-of-speech label shown next to noun, used as a prefix entries"
   },
-  "pos_label_n-suf": {
+  "pos_label_n_suf": {
     "message": "接尾",
     "description": "Short part-of-speech label shown next to noun, used as a suffix entries"
   },
-  "pos_label_n-t": {
-    "message": "時相",
+  "pos_label_n_t": {
+    "message": "時相名詞",
     "description": "Short part-of-speech label shown next to noun (temporal) (jisoumeishi) entries"
   },
   "pos_label_num": {
-    "message": "数",
+    "message": "数詞",
     "description": "Short part-of-speech label shown next to numeric entries"
   },
   "pos_label_pn": {
@@ -1601,7 +1601,7 @@
     "description": "Short part-of-speech label shown next to prefix entries"
   },
   "pos_label_prt": {
-    "message": "助",
+    "message": "助詞",
     "description": "Short part-of-speech label shown next to particle entries"
   },
   "pos_label_suf": {
@@ -1612,7 +1612,7 @@
     "message": "?",
     "description": "Short part-of-speech label shown next to unclassified entries"
   },
-  "pos_label_v-unspec": {
+  "pos_label_v_unspec": {
     "message": "動",
     "description": "Short part-of-speech label shown next to verb unspecified entries"
   },
@@ -1620,99 +1620,99 @@
     "message": "動一",
     "description": "Short part-of-speech label shown next to Ichidan verb entries"
   },
-  "pos_label_v1-s": {
-    "message": "動一（くれる）",
+  "pos_label_v1_s": {
+    "message": "動一(くれる)",
     "description": "Short part-of-speech label shown next to Ichidan verb - kureru special class entries"
   },
-  "pos_label_v2a-s": {
+  "pos_label_v2a_s": {
     "message": "動ア二",
     "description": "Short part-of-speech label shown next to Nidan verb with 'u' ending (archaic) entries"
   },
-  "pos_label_v2b-k": {
+  "pos_label_v2b_k": {
     "message": "動バ上二",
     "description": "Short part-of-speech label shown next to Nidan verb (upper class) with 'bu' ending (archaic) entries"
   },
-  "pos_label_v2b-s": {
+  "pos_label_v2b_s": {
     "message": "動バ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'bu' ending (archaic) entries"
   },
-  "pos_label_v2d-k": {
+  "pos_label_v2d_k": {
     "message": "動ダ上二",
     "description": "Short part-of-speech label shown next to Nidan verb (upper class) with 'dzu' ending (archaic) entries"
   },
-  "pos_label_v2d-s": {
+  "pos_label_v2d_s": {
     "message": "動ダ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'dzu' ending (archaic) entries"
   },
-  "pos_label_v2g-k": {
+  "pos_label_v2g_k": {
     "message": "動ガ上二",
     "description": "Short part-of-speech label shown next to Nidan verb (upper class) with 'gu' ending (archaic) entries"
   },
-  "pos_label_v2g-s": {
+  "pos_label_v2g_s": {
     "message": "動ガ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'gu' ending (archaic) entries"
   },
-  "pos_label_v2h-k": {
+  "pos_label_v2h_k": {
     "message": "動ハ上二",
     "description": "Short part-of-speech label shown next to Nidan verb (upper class) with 'hu/fu' ending (archaic) entries"
   },
-  "pos_label_v2h-s": {
+  "pos_label_v2h_s": {
     "message": "動ハ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'hu/fu' ending (archaic) entries"
   },
-  "pos_label_v2k-k": {
+  "pos_label_v2k_k": {
     "message": "動カ上二",
     "description": "Short part-of-speech label shown next to Nidan verb (upper class) with 'ku' ending (archaic) entries"
   },
-  "pos_label_v2k-s": {
+  "pos_label_v2k_s": {
     "message": "動カ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'ku' ending (archaic) entries"
   },
-  "pos_label_v2m-k": {
+  "pos_label_v2m_k": {
     "message": "動マ上二",
     "description": "Short part-of-speech label shown next to Nidan verb (upper class) with 'mu' ending (archaic) entries"
   },
-  "pos_label_v2m-s": {
+  "pos_label_v2m_s": {
     "message": "動マ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'mu' ending (archaic) entries"
   },
-  "pos_label_v2n-s": {
+  "pos_label_v2n_s": {
     "message": "動ナ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'nu' ending (archaic) entries"
   },
-  "pos_label_v2r-k": {
+  "pos_label_v2r_k": {
     "message": "動ラ上二",
     "description": "Short part-of-speech label shown next to Nidan verb (upper class) with 'ru' ending (archaic) entries"
   },
-  "pos_label_v2r-s": {
+  "pos_label_v2r_s": {
     "message": "動ラ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'ru' ending (archaic) entries"
   },
-  "pos_label_v2s-s": {
+  "pos_label_v2s_s": {
     "message": "動サ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'su' ending (archaic) entries"
   },
-  "pos_label_v2t-k": {
+  "pos_label_v2t_k": {
     "message": "動タ上二",
     "description": "Short part-of-speech label shown next to Nidan verb (upper class) with 'tsu' ending (archaic) entries"
   },
-  "pos_label_v2t-s": {
+  "pos_label_v2t_s": {
     "message": "動タ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'tsu' ending (archaic) entries"
   },
-  "pos_label_v2w-s": {
+  "pos_label_v2w_s": {
     "message": "動ワ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'u' ending and 'we' conjugation (archaic) entries"
   },
-  "pos_label_v2y-k": {
+  "pos_label_v2y_k": {
     "message": "動ヤ上二",
     "description": "Short part-of-speech label shown next to Nidan verb (upper class) with 'yu' ending (archaic) entries"
   },
-  "pos_label_v2y-s": {
+  "pos_label_v2y_s": {
     "message": "動ヤ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'yu' ending (archaic) entries"
   },
-  "pos_label_v2z-s": {
+  "pos_label_v2z_s": {
     "message": "動ザ下二",
     "description": "Short part-of-speech label shown next to Nidan verb (lower class) with 'zu' ending (archaic) entries"
   },
@@ -1768,7 +1768,7 @@
     "message": "動カ五",
     "description": "Short part-of-speech label shown next to Godan verb with 'ku' ending entries"
   },
-  "pos_label_v5k-s": {
+  "pos_label_v5k_s": {
     "message": "動カ五変格",
     "description": "Short part-of-speech label shown next to Godan verb - Iku/Yuku special class entries"
   },
@@ -1784,7 +1784,7 @@
     "message": "動ラ五",
     "description": "Short part-of-speech label shown next to Godan verb with 'ru' ending entries"
   },
-  "pos_label_v5r-i": {
+  "pos_label_v5r_i": {
     "message": "動ラ五（ラ変）",
     "description": "Short part-of-speech label shown next to Godan verb with 'ru' ending (irregular verb) entries"
   },
@@ -1800,7 +1800,7 @@
     "message": "動ア五",
     "description": "Short part-of-speech label shown next to Godan verb with 'u' ending entries"
   },
-  "pos_label_v5u-s": {
+  "pos_label_v5u_s": {
     "message": "動ワ五",
     "description": "Short part-of-speech label shown next to Godan verb with 'u' ending (special class) entries"
   },
@@ -1809,7 +1809,7 @@
     "description": "Short part-of-speech label shown next to Godan verb - Uru old class verb (old form of Eru) entries (this doesn't appear to be used)"
   },
   "pos_label_vi": {
-    "message": "自",
+    "message": "自動",
     "description": "Short part-of-speech label shown next to intransitive verb entries"
   },
   "pos_label_vk": {
@@ -1828,20 +1828,20 @@
     "message": "サ変名詞",
     "description": "Short part-of-speech label shown next to noun or participle which takes the aux. verb suru entries"
   },
-  "pos_label_vs-c": {
+  "pos_label_vs_c": {
     "message": "動サ変",
     "description": "Short part-of-speech label shown next to su verb - precursor to the modern suru entries"
   },
-  "pos_label_vs-i": {
+  "pos_label_vs_i": {
     "message": "動サ変",
     "description": "Short part-of-speech label shown next to suru verb - included entries"
   },
-  "pos_label_vs-s": {
+  "pos_label_vs_s": {
     "message": "動サ変",
     "description": "Short part-of-speech label shown next to suru verb - special class entries"
   },
   "pos_label_vt": {
-    "message": "他",
+    "message": "他動",
     "description": "Short part-of-speech label shown next to transitive verb entries"
   },
   "pos_label_vz": {

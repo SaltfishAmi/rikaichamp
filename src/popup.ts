@@ -662,7 +662,8 @@ function renderDefinitions(entry: WordResult, options: PopupOptions) {
           if (options.posDisplay === 'expl') {
             posSpan.lang = getLangTag();
             posSpan.textContent =
-              browser.i18n.getMessage(`pos_label_${pos}`) || pos;
+              browser.i18n.getMessage(`pos_label_${pos.replace(/-/g, '_')}`) ||
+              pos;
           } else {
             posSpan.textContent = pos;
           }
@@ -674,7 +675,8 @@ function renderDefinitions(entry: WordResult, options: PopupOptions) {
           miscSpan.classList.add('w-misc', 'tag');
           miscSpan.lang = getLangTag();
           miscSpan.textContent =
-            browser.i18n.getMessage(`misc_label_${misc}`) || misc;
+            browser.i18n.getMessage(`misc_label_${misc.replace(/-/g, '_')}`) ||
+            misc;
           groupHeading.append(miscSpan);
         }
 
@@ -727,7 +729,10 @@ function renderSense(
       switch (options.posDisplay) {
         case 'expl':
           posSpan.lang = getLangTag();
-          posSpan.append(browser.i18n.getMessage(`pos_label_${pos}`) || pos);
+          posSpan.append(
+            browser.i18n.getMessage(`pos_label_${pos.replace(/-/g, '_')}`) ||
+              pos
+          );
           break;
 
         case 'code':
@@ -750,25 +755,14 @@ function renderSense(
   }
 
   if (sense.misc) {
-    if (
-      previousSense &&
-      previousSense.misc &&
-      JSON.stringify(previousSense.misc) === JSON.stringify(sense.misc)
-    ) {
+    for (const misc of sense.misc) {
       const miscSpan = document.createElement('span');
       miscSpan.classList.add('w-misc', 'tag');
-      miscSpan.textContent = '〃';
       miscSpan.lang = getLangTag();
+      miscSpan.textContent =
+        browser.i18n.getMessage(`misc_label_${misc.replace(/-/g, '_')}`) ||
+        misc;
       fragment.append(miscSpan);
-    } else {
-      for (const misc of sense.misc) {
-        const miscSpan = document.createElement('span');
-        miscSpan.classList.add('w-misc', 'tag');
-        miscSpan.lang = getLangTag();
-        miscSpan.textContent =
-          browser.i18n.getMessage(`misc_label_${misc}`) || misc;
-        fragment.append(miscSpan);
-      }
     }
   }
 

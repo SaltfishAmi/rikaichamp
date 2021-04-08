@@ -88,7 +88,6 @@ import {
   SVG_NS,
 } from './svg';
 import { hasReasonableTimerResolution } from './timer-precision';
-import { isEraName, startsWithEraName } from './years';
 
 declare global {
   interface Window {

@@ -51,23 +51,28 @@ import '../html/background.html.src';
 import Bugsnag, { Event as BugsnagEvent } from '@bugsnag/browser';
 import { DataSeriesState } from '@birchill/hikibiki-data';
 
-import { updateBrowserAction, FlatFileDictState } from './browser-action';
+import { updateBrowserAction } from './browser-action';
 import { Config } from './config';
-import { Dictionary } from './data';
+import { ContentConfig } from './content-config';
 import {
   notifyDbStateUpdated,
   DbListenerMessage,
 } from './db-listener-messages';
+import { DictMode } from './dict-mode';
 import { ExtensionStorageError } from './extension-storage-error';
 import {
-  JpdictState,
+  JpdictStateWithFallback,
   cancelUpdateDb,
   deleteDb,
   initDb,
   updateDb,
   searchKanji,
   searchNames,
+  searchWords,
+  translate,
 } from './jpdict';
+import { shouldRequestPersistentStorage } from './quota-management';
+import { NameResult, SearchResult, WordSearchResult } from './search-result';
 
 //
 // Setup bugsnag
@@ -91,34 +96,26 @@ browser.management.getSelf().then((info) => {
 
 const manifest = browser.runtime.getManifest();
 
-const bugsnagClient = Bugsnag.start({
+Bugsnag.start({
   apiKey: 'e707c9ae84265d122b019103641e6462',
   appVersion: manifest.version_name || manifest.version,
   autoTrackSessions: false,
   collectUserIp: false,
   enabledBreadcrumbTypes: ['log', 'error'],
   logger: null,
-  onError: (event: BugsnagEvent) => {
-    // Due to Firefox bug 1561911
-    // (https://bugzilla.mozilla.org/show_bug.cgi?id=1561911)
-    // we can get spurious unhandledrejections when using streams.
-    // Until the fix for that bug is in ESR, we filter them out here.
-    if (event.errors[0].errorClass === 'DownloadError' && event.unhandled) {
-      return false;
-    }
-
-    // Fix up grouping
+  onError: async (event: BugsnagEvent) => {
+    // Group download errors by URL and error code
     if (
       event.errors[0].errorClass === 'DownloadError' &&
       event.originalError &&
       typeof event.originalError.url !== 'undefined'
     ) {
-      // Group by URL and error code
       event.groupingHash =
         String(event.originalError.code) + event.originalError.url;
       event.request.url = event.originalError.url;
     }
 
+    // Group extension errors by action and key
     if (
       event.errors[0].errorClass === 'ExtensionStorageError' &&
       event.originalError
@@ -130,6 +127,33 @@ const bugsnagClient = Bugsnag.start({
     // Update release stage here since we can only fetch this async but
     // bugsnag doesn't allow updating the instance after initializing.
     event.app.releaseStage = releaseStage;
+
+    // Update paths in stack trace so that:
+    //
+    // (a) They are the same across installations of the same version (since
+    //     the installed extension ID in the path differs per installation).
+    // (b) They point to where the source is available publicly.
+    //
+    // TODO: Do the equivalent for Chrome etc.
+    const basePath = `https://github.com/birtles/rikaichamp/releases/download/v${manifest.version}`;
+    for (const error of event.errors) {
+      for (const frame of error.stacktrace) {
+        frame.file = frame.file.replace(
+          /^moz-extension:\/\/[0-9a-z-]+/,
+          basePath
+        );
+      }
+    }
+
+    // If we get a QuotaExceededError, report how much disk space was available.
+    if (event.errors[0].errorClass === 'QuotaExceededError') {
+      try {
+        const { quota, usage } = await navigator.storage.estimate();
+        event.addMetadata('storage', { quota, usage });
+      } catch (_e) {
+        console.log('Failed to get storage estimate');
+      }
+    }
 
     return true;
   },
@@ -158,7 +182,6 @@ config.addChangeListener((changes) => {
     updateBrowserAction({
       popupStyle,
       enabled: true,
-      flatFileDictState,
       jpdictState,
     });
   }
@@ -265,7 +288,12 @@ config.ready.then(() => {
 // Jpdict database
 //
 
-let jpdictState: JpdictState = {
+let jpdictState: JpdictStateWithFallback = {
+  words: {
+    state: DataSeriesState.Initializing,
+    version: null,
+    fallbackState: 'unloaded',
+  },
   kanji: {
     state: DataSeriesState.Initializing,
     version: null,
@@ -286,13 +314,12 @@ async function initJpDict() {
   initDb({ lang: config.dictLang, onUpdate: onDbStatusUpdated });
 }
 
-function onDbStatusUpdated(state: JpdictState) {
+function onDbStatusUpdated(state: JpdictStateWithFallback) {
   jpdictState = state;
 
   updateBrowserAction({
     popupStyle: config.popupStyle,
     enabled,
-    flatFileDictState,
     jpdictState: state,
   });
 
@@ -375,34 +402,6 @@ async function notifyDbListeners(specifiedListener?: browser.runtime.Port) {
 }
 
 //
-// Flat-file (legacy) dictionary
-//
-
-let flatFileDict: Dictionary | undefined = undefined;
-// TODO: This is temporary until we move the other databases to IDB
-let flatFileDictState = FlatFileDictState.Ok;
-
-async function loadDictionary(): Promise<void> {
-  if (!flatFileDict) {
-    flatFileDict = new Dictionary({ bugsnag: bugsnagClient });
-  }
-
-  try {
-    flatFileDictState = FlatFileDictState.Loading;
-    await flatFileDict.loaded;
-  } catch (e) {
-    flatFileDictState = FlatFileDictState.Error;
-    // If we fail loading the dictionary, make sure to reset it so we can try
-    // again!
-    flatFileDict = undefined;
-    throw e;
-  }
-  flatFileDictState = FlatFileDictState.Ok;
-
-  Bugsnag.leaveBreadcrumb('Loaded dictionary successfully');
-}
-
-//
 // Context menu
 //
 
@@ -457,7 +456,6 @@ async function enableTab(tab: browser.tabs.Tab) {
   updateBrowserAction({
     popupStyle: config.popupStyle,
     enabled: true,
-    flatFileDictState: FlatFileDictState.Loading,
     jpdictState,
   });
 
@@ -466,7 +464,7 @@ async function enableTab(tab: browser.tabs.Tab) {
   }
 
   try {
-    await Promise.all([loadDictionary(), config.ready]);
+    await config.ready;
 
     Bugsnag.leaveBreadcrumb('Triggering database update from enableTab...');
     initJpDict();
@@ -494,7 +492,6 @@ async function enableTab(tab: browser.tabs.Tab) {
     updateBrowserAction({
       popupStyle: config.popupStyle,
       enabled: true,
-      flatFileDictState,
       jpdictState,
     });
   } catch (e) {
@@ -503,12 +500,8 @@ async function enableTab(tab: browser.tabs.Tab) {
     updateBrowserAction({
       popupStyle: config.popupStyle,
       enabled: true,
-      flatFileDictState,
       jpdictState,
     });
-
-    // Reset internal state so we can try again
-    flatFileDict = undefined;
 
     if (menuId) {
       browser.contextMenus.update(menuId, { checked: false });
@@ -530,7 +523,6 @@ async function disableAll() {
   updateBrowserAction({
     popupStyle: config.popupStyle,
     enabled,
-    flatFileDictState,
     jpdictState,
   });
 
@@ -595,14 +587,6 @@ async function search(
   text: string,
   dictOption: DictMode
 ): Promise<SearchResult | null> {
-  if (!flatFileDict) {
-    console.error('Dictionary not initialized in search');
-    Bugsnag.notify('Dictionary not initialized in search', (event) => {
-      event.severity = 'warning';
-    });
-    return null;
-  }
-
   switch (dictOption) {
     case DictMode.ForceKanji:
       return searchKanji(text.charAt(0));
@@ -688,12 +672,7 @@ async function wordSearch(params: {
   max?: number;
   includeRomaji?: boolean;
 }): Promise<WordSearchResult | null> {
-  console.assert(
-    flatFileDict,
-    'We should have checked we have a dictionary before calling this'
-  );
-
-  const result = await flatFileDict!.wordSearch(params);
+  const result = await searchWords(params);
 
   // Check for a longer match in the names dictionary, but only if the existing
   // match has some non-hiragana characters in it.
@@ -787,20 +766,10 @@ browser.runtime.onMessage.addListener(
         break;
 
       case 'translate':
-        if (flatFileDict) {
-          return flatFileDict.translate({
-            text: request.title,
-            includeRomaji: config.showRomaji,
-          });
-        }
-        console.error('Dictionary not initialized in translate request');
-        Bugsnag.notify(
-          'Dictionary not initialized in translate request',
-          (event) => {
-            event.severity = 'warning';
-          }
-        );
-        break;
+        return translate({
+          text: request.title,
+          includeRomaji: config.showRomaji,
+        });
 
       case 'toggleDefinition':
         config.toggleReadingOnly();
@@ -837,7 +806,18 @@ function onTabSelect(tabId: number) {
   });
 }
 
-browser.runtime.onInstalled.addListener(() => {
+browser.runtime.onInstalled.addListener(async () => {
+  // Request persistent storage permission
+  let persisted = await navigator.storage.persisted();
+  if (!persisted && (await shouldRequestPersistentStorage())) {
+    persisted = await navigator.storage.persist();
+    if (persisted) {
+      Bugsnag.leaveBreadcrumb('Got persistent storage permission');
+    } else {
+      Bugsnag.leaveBreadcrumb('Failed to get persistent storage permission');
+    }
+  }
+
   Bugsnag.leaveBreadcrumb('Running initJpDict from onInstalled...');
   initJpDict();
 });

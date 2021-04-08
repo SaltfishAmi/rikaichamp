@@ -1,14 +1,14 @@
-import { MiscType } from '@birchill/hikibiki-data';
+import { MiscType, PartOfSpeech } from '@birchill/hikibiki-data';
 
-import { ExtendedSense, PartOfSpeech } from './word-result';
+import { Sense } from './search-result';
 
 export interface PosGroup {
   pos: Array<PartOfSpeech>;
   misc: Array<MiscType>;
-  senses: Array<ExtendedSense>;
+  senses: Array<Sense>;
 }
 
-export function groupSenses(senses: Array<ExtendedSense>): Array<PosGroup> {
+export function groupSenses(senses: Array<Sense>): Array<PosGroup> {
   const groups: Array<PosGroup> = [];
 
   // Do an initial grouping based on the first part-of-speech (POS)
@@ -16,7 +16,7 @@ export function groupSenses(senses: Array<ExtendedSense>): Array<PosGroup> {
   for (const sense of senses) {
     // Look for a match. Note that a match can be one of two kinds:
     //
-    // a) Where we sense includes the POS we are grouping on
+    // a) Where the sense includes the POS we are grouping on
     // b) Where we currently have a group where there is no POS and the sense
     //    also has no POS.
     if (
@@ -87,9 +87,9 @@ export function groupSenses(senses: Array<ExtendedSense>): Array<PosGroup> {
 // Set up a utility to produce a copy of a sense with the specified
 // part(s)-of-speech removed.
 function dropPos(
-  sense: ExtendedSense,
+  sense: Sense,
   posToDrop: PartOfSpeech | Array<PartOfSpeech> | undefined
-): ExtendedSense {
+): Sense {
   let pos = sense.pos
     ? sense.pos.filter((pos) =>
         Array.isArray(posToDrop) ? !posToDrop.includes(pos) : pos !== posToDrop

@@ -1,9 +1,8 @@
-/// <reference types="../src/common" />
-
 import { assert } from 'chai';
 import { browser } from './browser-polyfill';
 (window as any).browser = browser;
 
+import { ContentConfig } from '../src/content-config';
 import { RikaiContent, GetTextResult } from '../src/content';
 import { ReferenceAbbreviation } from '../src/refs';
 
@@ -101,13 +100,10 @@ describe('rikaiContent:text search', () => {
 
   beforeEach(() => {
     const config: ContentConfig = {
-      showPriority: true,
-      readingOnly: false,
       accentDisplay: 'downstep',
-      posDisplay: 'expl',
-      kanjiReferences: ['kk'] as Array<ReferenceAbbreviation>,
-      showKanjiComponents: true,
+      dictLang: 'en',
       holdToShowKeys: [],
+      kanjiReferences: ['kk'] as Array<ReferenceAbbreviation>,
       keys: {
         toggleDefinition: ['d'],
         nextDictionary: ['Shift'],
@@ -115,6 +111,10 @@ describe('rikaiContent:text search', () => {
       },
       noTextHighlight: false,
       popupStyle: 'blue',
+      posDisplay: 'expl',
+      readingOnly: false,
+      showKanjiComponents: true,
+      showPriority: true,
     };
     subject = new RikaiContent(config);
 
@@ -843,6 +843,35 @@ describe('rikaiContent:text search', () => {
     assertTextResultEqual(result, 'せん', seNode, 0, seNode, 1, nNode, 1);
   });
 
+  it('should traverse okurigana in inline-block elements too', () => {
+    // YouTube annotates okurigana inline-block spans.
+    //
+    // See https://github.com/birtles/rikaichamp/issues/535
+    testDiv.innerHTML =
+      '<p><ruby><span>疲</span><rt>つか</rt></ruby><span style="display: inline-block">れた</span></p>';
+
+    const kanjiNode = testDiv.firstChild!.firstChild!.firstChild!
+      .firstChild as Text;
+    const okuriganaNode = testDiv.firstChild!.childNodes[1].firstChild as Text;
+    const bbox = getBboxForOffset(kanjiNode, 0);
+
+    const result = subject.getTextAtPoint({
+      x: bbox.left,
+      y: bbox.top + bbox.height / 2,
+    });
+
+    assertTextResultEqual(
+      result,
+      '疲れた',
+      kanjiNode,
+      0,
+      kanjiNode,
+      1,
+      okuriganaNode,
+      2
+    );
+  });
+
   it('should find text in SVG content', () => {
     testDiv.innerHTML = '<svg><text y="1em">あいうえお</text></svg>';
     const textNode = testDiv.firstChild!.firstChild!.firstChild as Text;
@@ -1059,13 +1088,10 @@ describe('rikaiContent:highlighting', () => {
 
   beforeEach(() => {
     const config: ContentConfig = {
-      showPriority: true,
-      readingOnly: false,
       accentDisplay: 'downstep',
-      posDisplay: 'expl',
-      kanjiReferences: ['kk'] as Array<ReferenceAbbreviation>,
-      showKanjiComponents: true,
+      dictLang: 'en',
       holdToShowKeys: [],
+      kanjiReferences: ['kk'] as Array<ReferenceAbbreviation>,
       keys: {
         toggleDefinition: ['d'],
         nextDictionary: ['Shift'],
@@ -1073,6 +1099,10 @@ describe('rikaiContent:highlighting', () => {
       },
       noTextHighlight: false,
       popupStyle: 'blue',
+      posDisplay: 'expl',
+      readingOnly: false,
+      showPriority: true,
+      showKanjiComponents: true,
     };
     subject = new RikaiContent(config);
 

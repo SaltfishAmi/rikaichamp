@@ -1,5 +1,6 @@
 import Bugsnag from '@bugsnag/browser';
 import {
+  DataSeries,
   DataSeriesState,
   DataVersion,
   NameResult,
@@ -7,13 +8,22 @@ import {
   UpdateState,
   getKanji,
   getNames,
+  getWords as idbGetWords,
 } from '@birchill/hikibiki-data';
-import { expandChoon } from '@birchill/normal-jp';
+import { expandChoon, kanaToHiragana } from '@birchill/normal-jp';
 
 import { normalizeInput } from './conversion';
 import { ExtensionStorageError } from './extension-storage-error';
+import { FlatFileDatabaseLoader, FlatFileDatabaseLoadState } from './flat-file';
 import { JpdictWorkerMessage } from './jpdict-worker-messages';
 import * as messages from './jpdict-worker-messages';
+import {
+  KanjiSearchResult,
+  NameSearchResult,
+  TranslateResult,
+  WordSearchResult,
+} from './search-result';
+import { GetWordsFunction, wordSearch } from './word-search';
 import { endsInYoon } from './yoon';
 
 //
@@ -21,6 +31,10 @@ import { endsInYoon } from './yoon';
 //
 
 export type JpdictState = {
+  words: {
+    state: DataSeriesState;
+    version: DataVersion | null;
+  };
   kanji: {
     state: DataSeriesState;
     version: DataVersion | null;
@@ -35,6 +49,12 @@ export type JpdictState = {
   };
   updateState: UpdateState;
   updateError?: UpdateErrorState;
+};
+
+export type JpdictStateWithFallback = Omit<JpdictState, 'words'> & {
+  words: JpdictState['words'] & {
+    fallbackState: FlatFileDatabaseLoadState;
+  };
 };
 
 //
@@ -59,7 +79,12 @@ jpdictWorker.onmessageerror = (evt: MessageEvent) => {
 // We track some state locally because we want to avoid querying the database
 // when it is being updated since this can block for several seconds.
 
-let dbState: JpdictState = {
+let dbState: JpdictStateWithFallback = {
+  words: {
+    state: DataSeriesState.Initializing,
+    version: null,
+    fallbackState: 'unloaded',
+  },
   kanji: {
     state: DataSeriesState.Initializing,
     version: null,
@@ -75,22 +100,30 @@ let dbState: JpdictState = {
   updateState: { state: 'idle', lastCheck: null },
 };
 
-function kanjiDbLang(): string {
-  return dbState.kanji.version?.lang ?? 'en';
-}
-
-function isNamesDbAvailable(): boolean {
+// We treat the names and words dictionaries as unavailable when they are being
+// updated because otherwise we can block for seconds waiting to read from them.
+function isDataSeriesAvailable(series: DataSeries): boolean {
   return (
-    dbState.names.state === DataSeriesState.Ok &&
+    dbState[series].state === DataSeriesState.Ok &&
     (dbState.updateState.state === 'idle' ||
-      dbState.updateState.series !== 'names')
+      dbState.updateState.series !== series)
   );
 }
+
+// Fallback words database to use if we can't read the IndexedDB one (e.g.
+// because we hit a quota error, or because it is currently being updated).
+
+const fallbackDatabaseLoader = new FlatFileDatabaseLoader({
+  // If 'process' is defined, we're running in a node environment, which
+  // which probably means we're running in a test environment and should not
+  // bother trying to call bugsnag.
+  bugsnag: typeof process === 'object' ? undefined : Bugsnag,
+});
 
 // We also need to track the lastUpdateTime locally. That's because if
 // we tried to read it from extension storage when we get worker messages,
 // because the API is async, on Chrome we can get situations where we actually
-// end up apply the database state messages in the wrong order.
+// end up applying the database state messages in the wrong order.
 
 let lastUpdateTime: number | null = null;
 
@@ -103,7 +136,7 @@ export async function initDb({
   onUpdate,
 }: {
   lang: string;
-  onUpdate: (status: JpdictState) => void;
+  onUpdate: (status: JpdictStateWithFallback) => void;
 }) {
   lastUpdateTime = await getLastUpdateTime();
   Bugsnag.leaveBreadcrumb(`Got last update time of ${lastUpdateTime}`);
@@ -119,7 +152,13 @@ export async function initDb({
           // This value will only be set if we already did a check this session.
           // It is _not_ a stored value.  So, if it is not set, use the value we
           // stored instead.
-          const state = { ...message.state };
+          const state = {
+            ...message.state,
+            words: {
+              ...message.state.words,
+              fallbackState: dbState.words.fallbackState,
+            },
+          };
           if (state.updateState.lastCheck === null && lastUpdateTime) {
             state.updateState.lastCheck = new Date(lastUpdateTime);
           }
@@ -135,19 +174,31 @@ export async function initDb({
         }
         break;
 
+      case 'breadcrumb':
+        Bugsnag.leaveBreadcrumb(message.message);
+        break;
+
       case 'error':
-        if (message.severity === 'breadcrumb') {
-          Bugsnag.leaveBreadcrumb(String(message.error));
-        } else {
-          Bugsnag.notify(
-            message.error || '(Unrecognized error from jpdict worker)',
-            (event) => {
-              event.severity = message.severity as 'error' | 'warning';
-            }
-          );
-        }
+        Bugsnag.notify(
+          { name: message.name, message: message.message },
+          (event) => {
+            event.severity = message.severity as 'error' | 'warning';
+          }
+        );
         break;
     }
+  };
+
+  // Make sure updates to the fallback database loading state are also reported.
+  //
+  // But first, reset any loads that might have errored or hung so that the
+  // user can retry the load by disabling/enabling the add-on.
+  fallbackDatabaseLoader.resetIfNotLoaded();
+  fallbackDatabaseLoader.onUpdate = (
+    fallbackDatabaseState: FlatFileDatabaseLoadState
+  ) => {
+    dbState.words.fallbackState = fallbackDatabaseState;
+    onUpdate(dbState);
   };
 
   // Fetch the initial state
@@ -230,6 +281,125 @@ export function deleteDb() {
   setLastUpdateTime(null);
 }
 
+// ---------------------------------------------------------------------------
+//
+// Words
+//
+// ---------------------------------------------------------------------------
+
+const WORDS_MAX_ENTRIES = 7;
+
+export async function searchWords({
+  input,
+  max = 0,
+  includeRomaji = false,
+}: {
+  input: string;
+  max?: number;
+  includeRomaji?: boolean;
+}): Promise<WordSearchResult | null> {
+  let [word, inputLengths] = normalizeInput(input);
+  word = kanaToHiragana(word);
+
+  const maxResults =
+    max > 0 ? Math.min(WORDS_MAX_ENTRIES, max) : WORDS_MAX_ENTRIES;
+
+  // Determine which dictionary to use: The IndexedDB one or the flat-file
+  // fallback dictionary.
+  let getWords: GetWordsFunction;
+  if (isDataSeriesAvailable('words')) {
+    getWords = ({ input, maxResults }: { input: string; maxResults: number }) =>
+      idbGetWords(input, { matchType: 'exact', limit: maxResults });
+  } else {
+    try {
+      const flatFileDatabase = await fallbackDatabaseLoader.database;
+      getWords = flatFileDatabase.getWords.bind(flatFileDatabase);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // Setup a list of strings to try that includes all the possible expansions of
+  // ー characters.
+  const candidateWords = [word, ...expandChoon(word)];
+
+  let result: WordSearchResult | null = null;
+  for (const candidate of candidateWords) {
+    // Try this particular expansion of any choon
+    const thisResult = await wordSearch({
+      getWords,
+      input: candidate,
+      inputLengths,
+      maxResults,
+      includeRomaji,
+    });
+
+    // Replace the result if we got a longer match
+    if (!result || (thisResult && thisResult.matchLen > result.matchLen)) {
+      result = thisResult;
+    }
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+//
+// Translate
+//
+// ---------------------------------------------------------------------------
+
+export async function translate({
+  text,
+  includeRomaji = false,
+}: {
+  text: string;
+  includeRomaji?: boolean;
+}): Promise<TranslateResult | null> {
+  const result: TranslateResult = {
+    type: 'translate',
+    data: [],
+    textLen: text.length,
+    more: false,
+  };
+
+  let skip: number;
+  while (text.length > 0) {
+    const searchResult = await searchWords({
+      input: text,
+      max: 1,
+      includeRomaji,
+    });
+
+    if (searchResult && searchResult.data) {
+      if (result.data.length >= WORDS_MAX_ENTRIES) {
+        result.more = true;
+        break;
+      }
+
+      // Just take first match
+      result.data.push(searchResult.data[0]);
+      skip = searchResult.matchLen;
+    } else {
+      skip = 1;
+    }
+    text = text.substr(skip, text.length - skip);
+  }
+
+  if (result.data.length === 0) {
+    return null;
+  }
+
+  result.textLen -= text.length;
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+//
+// Kanji
+//
+// ---------------------------------------------------------------------------
+
 export async function searchKanji(
   kanji: string
 ): Promise<KanjiSearchResult | null> {
@@ -256,7 +426,7 @@ export async function searchKanji(
   try {
     result = await getKanji({
       kanji: [kanji],
-      lang: kanjiDbLang(),
+      lang: dbState.kanji.version?.lang ?? 'en',
       logWarningMessage,
     });
   } catch (e) {
@@ -280,6 +450,12 @@ export async function searchKanji(
   };
 }
 
+// ---------------------------------------------------------------------------
+//
+// Names
+//
+// ---------------------------------------------------------------------------
+
 const NAMES_MAX_ENTRIES = 20;
 
 export async function searchNames({
@@ -289,7 +465,7 @@ export async function searchNames({
   input: string;
   minLength?: number;
 }): Promise<NameSearchResult | null> {
-  if (!isNamesDbAvailable()) {
+  if (!isDataSeriesAvailable('names')) {
     return null;
   }
 

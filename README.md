@@ -1,7 +1,6 @@
 # Rikaichamp!
 
 ![](https://github.com/birtles/rikaichamp/workflows/Automated%20tests/badge.svg)
-![](https://api.dependabot.com/badges/status?host=github&repo=birtles/rikaichamp)
 
 Look up Japanese words with the hover of a mouse.
 
@@ -53,8 +52,11 @@ yarn start
 To use a specific version of Firefox (e.g. Nightly):
 
 ```
-yarn start --firefox nightly
+yarn start --env firefox=nightly
 ```
+
+Other options include `--env firefoxProfile=<path>`,
+`--env keepProfileChanges`, and `--env profileCreateIfMissing`.
 
 ## Testing
 

@@ -1,6 +1,36 @@
-## 0.3.4 (not released yet)
+## 0.4.0 (not released yet)
 
-(Nothing yet)
+- Switched to using IndexedDB database for looking up words
+
+  - **Non-English definitions are now supported**
+  - Rikaichamp now uses much less memory
+  - All dictionaries are automatically updated weekly by downloading
+    just the changed entries
+  - While the words dictionary is being downloaded or updated, or in
+    case there is an error applying it (e.g. lack of disk space)
+    a fallback English dictionary is used.
+
+    Users who encounter errors due to lack of disk space are encouraged
+    to uninstall and re-install the add-on. That _might_ resolve the
+    issue.
+
+- Various fixes were added the order in which entries are displayed.
+- Made Rikaichamp recognize the full range of characters in CJK Unified
+  Ideographs Extension B so that some more rare kanji are recognized.
+
+## 0.3.5 (2021-03-19)
+
+- Improved popup positioning for vertical text (and hopefully some other
+  situations too).
+- Improved error handling for low disk space situations.
+
+## 0.3.4 (2021-03-01)
+
+- Made rikaichamp traverse text in `inline-block` elements so that it can
+  ready YouTube subtitles with ruby
+  ([#535](https://github.com/birtles/rikaichamp/issues/535))
+- (Hopefully) fixed handling of low disk space situations
+  ([#428](https://github.com/birtles/rikaichamp/issues/428))
 
 ## 0.3.3 (2020-12-09)
 

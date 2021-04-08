@@ -1,25 +1,16 @@
 import { DataSeriesState } from '@birchill/hikibiki-data';
 
-import { JpdictState } from './jpdict';
-
-// We will eventually drop this once we move everything to IDB
-export const enum FlatFileDictState {
-  Ok,
-  Loading,
-  Error,
-}
+import { JpdictStateWithFallback } from './jpdict';
 
 interface BrowserActionState {
   popupStyle: string;
   enabled: boolean;
-  flatFileDictState: FlatFileDictState;
-  jpdictState: JpdictState;
+  jpdictState: JpdictStateWithFallback;
 }
 
 export function updateBrowserAction({
   popupStyle,
   enabled,
-  flatFileDictState,
   jpdictState,
 }: BrowserActionState) {
   let iconFilename = 'disabled';
@@ -27,21 +18,31 @@ export function updateBrowserAction({
 
   // First choose the base icon type / text
   if (enabled) {
-    switch (flatFileDictState) {
-      case FlatFileDictState.Ok:
-        iconFilename = popupStyle;
-        titleStringId = 'command_toggle_enabled';
-        break;
+    const jpdictWords = jpdictState.words.state;
+    const fallbackWords = jpdictState.words.fallbackState;
 
-      case FlatFileDictState.Loading:
-        iconFilename = 'loading';
-        titleStringId = 'command_toggle_loading';
-        break;
-
-      case FlatFileDictState.Error:
-        iconFilename = 'error';
-        titleStringId = 'error_loading_dictionary';
-        break;
+    if (jpdictWords === DataSeriesState.Ok || fallbackWords === 'ok') {
+      iconFilename = popupStyle;
+      titleStringId = 'command_toggle_enabled';
+    } else if (
+      jpdictWords === DataSeriesState.Initializing ||
+      fallbackWords === 'loading'
+    ) {
+      iconFilename = 'loading';
+      titleStringId = 'command_toggle_loading';
+    } else if (fallbackWords === 'unloaded') {
+      // If we get this far, we've either failed to load the jpdict database or
+      // we simply haven't got around to populating it yet (e.g. we're still
+      // downloading the other databases).
+      //
+      // However, we won't load the fallback database until the user actually
+      // tries to look something up so we don't know if it's available yet or
+      // not. For now, assume everything is ok.
+      iconFilename = popupStyle;
+      titleStringId = 'command_toggle_enabled';
+    } else {
+      iconFilename = 'error';
+      titleStringId = 'error_loading_dictionary';
     }
   }
 
@@ -101,7 +102,11 @@ export function updateBrowserAction({
   if (
     hasNotOkDatabase &&
     !!jpdictState.updateError &&
-    jpdictState.updateError.name !== 'AbortError'
+    jpdictState.updateError.name !== 'AbortError' &&
+    // Don't show quota exceeded errors. If the quota is exceeded, there's not
+    // a lot the user can do about it, and we don't want to bother them with
+    // a constant error signal.
+    jpdictState.updateError.name !== 'QuotaExceededError'
   ) {
     browser.browserAction.setBadgeText({ text: '!' });
     browser.browserAction.setBadgeBackgroundColor({ color: 'yellow' });

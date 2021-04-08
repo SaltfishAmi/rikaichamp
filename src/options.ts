@@ -1,11 +1,18 @@
 import '../html/options.html.src';
 
-import { DataSeriesState } from '@birchill/hikibiki-data';
+import {
+  allDataSeries,
+  allMajorDataSeries,
+  DataSeries,
+  DataSeriesState,
+  MajorDataSeries,
+} from '@birchill/hikibiki-data';
 
 import { Config, DEFAULT_KEY_SETTINGS } from './config';
+import { AccentDisplay, PartOfSpeechDisplay } from './content-config';
 import { Command, CommandParams, isValidKey } from './commands';
 import { CopyKeys, CopyNextKeyStrings } from './copy-keys';
-import { dbLanguageNames, isDbLanguageId } from './db-languages';
+import { dbLanguageMeta, isDbLanguageId } from './db-languages';
 import {
   DbStateUpdatedMessage,
   cancelDbUpdate,
@@ -17,18 +24,6 @@ import { translateDoc } from './l10n';
 import { getReferenceLabelsForLang, getReferencesForLang } from './refs';
 
 const config = new Config();
-
-// TODO: Once we support the 'words' data series, drop these Supported*
-// definitions and use allDataSeries, allMajorDataSeries, DataSeries,
-// MajorDataSeries from @birchill/hikibiki-data.
-type SupportedDataSeries = 'kanji' | 'radicals' | 'names';
-type SupportedMajorDataSeries = 'kanji' | 'names';
-const allDataSeries: Array<SupportedDataSeries> = [
-  'kanji',
-  'radicals',
-  'names',
-];
-const allMajorDataSeries: Array<SupportedMajorDataSeries> = ['kanji', 'names'];
 
 function completeForm() {
   // UA-specific styles
@@ -535,10 +530,16 @@ function translateKeys() {
 function fillInLanguages() {
   const select = document.querySelector('select#lang') as HTMLSelectElement;
 
-  for (const [id, title] of dbLanguageNames) {
+  for (let [id, data] of dbLanguageMeta) {
+    let label = data.name;
+    if (data.hasWords && !data.hasKanji) {
+      label += browser.i18n.getMessage('options_lang_words_only');
+    } else if (!data.hasWords && data.hasKanji) {
+      label += browser.i18n.getMessage('options_lang_kanji_only');
+    }
     const option = document.createElement('option');
     option.value = id;
-    option.append(title);
+    option.append(label);
     select.append(option);
   }
 
@@ -746,6 +747,11 @@ function updateDatabaseBlurb(evt: DbStateUpdatedMessage) {
   blurb.append(
     linkify(attribution, [
       {
+        keyword: 'JMdict/EDICT',
+        href:
+          'https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project',
+      },
+      {
         keyword: 'KANJIDIC',
         href: 'https://www.edrdg.org/wiki/index.php/KANJIDIC_Project',
       },
@@ -820,14 +826,13 @@ function updateDatabaseStatus(evt: DbStateUpdatedMessage) {
       labelElem.classList.add('label');
       labelElem.htmlFor = 'update-progress';
 
-      const labels: { [series in SupportedDataSeries]: string } = {
+      const labels: { [series in DataSeries]: string } = {
         kanji: 'options_kanji_data_name',
         radicals: 'options_bushu_data_name',
         names: 'options_name_data_name',
+        words: 'options_words_data_name',
       };
-      const dbLabel = browser.i18n.getMessage(
-        labels[updateState.series as SupportedDataSeries]
-      );
+      const dbLabel = browser.i18n.getMessage(labels[updateState.series]);
 
       const { major, minor, patch } = updateState.downloadVersion;
       const versionString = `${major}.${minor}.${patch}`;
@@ -894,11 +899,7 @@ function updateDatabaseStatus(evt: DbStateUpdatedMessage) {
       cancelButton.textContent = browser.i18n.getMessage(
         'options_cancel_update_button_label'
       );
-      if (updateState.state === 'updatingdb') {
-        cancelButton.disabled = true;
-      } else {
-        cancelButton.addEventListener('click', cancelDatabaseUpdate);
-      }
+      cancelButton.addEventListener('click', cancelDatabaseUpdate);
       buttonDiv.append(cancelButton);
       break;
     }
@@ -907,7 +908,7 @@ function updateDatabaseStatus(evt: DbStateUpdatedMessage) {
   statusElem.append(buttonDiv);
 }
 
-function updateIdleStateSummary(
+async function updateIdleStateSummary(
   evt: DbStateUpdatedMessage,
   statusElem: Element
 ) {
@@ -928,10 +929,35 @@ function updateIdleStateSummary(
     infoDiv.classList.add('db-summary-info');
 
     const messageDiv = document.createElement('div');
-    const errorMessage = browser.i18n.getMessage(
-      'options_db_update_error',
-      updateError.message
-    );
+    let errorMessage: string | undefined;
+    if (updateError.name === 'QuotaExceededError') {
+      try {
+        let { quota } = await navigator.storage.estimate();
+        if (typeof quota !== 'undefined') {
+          // For Firefox, typically origins get a maximum of 20% of the global
+          // limit. When we have unlimitedStorage permission, however, we can
+          // use up to the full amount of the global limit. The storage API,
+          // however, still returns 20% as the quota, so multiplying by 5 will
+          // give the actual quota.
+          if (isFirefox()) {
+            quota *= 5;
+          }
+          errorMessage = browser.i18n.getMessage(
+            'options_db_update_quota_error',
+            formatSize(quota)
+          );
+        }
+      } catch (_e) {
+        /* Ignore */
+      }
+    }
+
+    if (!errorMessage) {
+      errorMessage = browser.i18n.getMessage(
+        'options_db_update_error',
+        updateError.message
+      );
+    }
     messageDiv.append(errorMessage);
     infoDiv.append(messageDiv);
 
@@ -947,6 +973,7 @@ function updateIdleStateSummary(
 
     statusElem.classList.add('-error');
     statusElem.append(infoDiv);
+
     return;
   }
 
@@ -970,35 +997,37 @@ function updateIdleStateSummary(
     return;
   }
 
+  const gridDiv = document.createElement('div');
+  gridDiv.classList.add('db-summary-version-grid');
+
   for (const series of allMajorDataSeries) {
     const versionInfo = evt.state[series].version;
     if (!versionInfo) {
       continue;
     }
 
-    const versionDiv = document.createElement('div');
-    versionDiv.classList.add('db-summary-version');
-
-    const { major, minor, patch } = versionInfo;
+    const { major, minor, patch, lang } = versionInfo;
     const titleDiv = document.createElement('div');
-    titleDiv.classList.add('title');
-    const titleKeys: { [series in SupportedMajorDataSeries]: string } = {
+    titleDiv.classList.add('db-source-title');
+    const titleKeys: { [series in MajorDataSeries]: string } = {
       kanji: 'options_kanji_data_title',
       names: 'options_name_data_title',
+      words: 'options_words_data_title',
     };
     const titleString = browser.i18n.getMessage(
       titleKeys[series],
-      `${major}.${minor}.${patch}`
+      `${major}.${minor}.${patch} (${lang})`
     );
     titleDiv.append(titleString);
-    versionDiv.append(titleDiv);
+    gridDiv.append(titleDiv);
 
     const sourceDiv = document.createElement('div');
     sourceDiv.classList.add('db-source-version');
 
-    const sourceNames: { [series in SupportedMajorDataSeries]: string } = {
+    const sourceNames: { [series in MajorDataSeries]: string } = {
       kanji: 'KANJIDIC',
       names: 'JMnedict/ENAMDICT',
+      words: 'JMdict/EDICT',
     };
     const sourceName = sourceNames[series];
 
@@ -1017,10 +1046,10 @@ function updateIdleStateSummary(
       ]);
     }
     sourceDiv.append(sourceString);
-    versionDiv.append(sourceDiv);
-
-    statusElem.append(versionDiv);
+    gridDiv.append(sourceDiv);
   }
+
+  statusElem.append(gridDiv);
 }
 
 function empty(elem: Element) {
@@ -1079,6 +1108,30 @@ function formatDate(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
     date.getDate()
   )} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function formatSize(sizeInBytes: number): string {
+  const kilobyte = 1024;
+  const megabyte = kilobyte * 1024;
+  const gigabyte = megabyte * 1024;
+  const terabyte = gigabyte * 1024;
+
+  // We don't bother localizing any of this. Anyone able to make sense of a
+  // file size, can probably understand an English file size prefix.
+  if (sizeInBytes >= terabyte) {
+    return (sizeInBytes / terabyte).toFixed(3) + 'Tb';
+  }
+  if (sizeInBytes >= gigabyte) {
+    return (sizeInBytes / gigabyte).toFixed(2) + 'Gb';
+  }
+  if (sizeInBytes >= megabyte) {
+    return (sizeInBytes / megabyte).toFixed(1) + 'Mb';
+  }
+  if (sizeInBytes >= kilobyte) {
+    return Math.round(sizeInBytes / kilobyte) + 'Kb';
+  }
+
+  return sizeInBytes + ' bytes';
 }
 
 function triggerDatabaseUpdate() {

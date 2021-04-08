@@ -1,23 +1,23 @@
-import { KanjiResult } from '@birchill/hikibiki-data';
-
 import {
   Dialect,
-  ExtendedKanjiEntry,
-  ExtendedKanaEntry,
-  ExtendedSense,
   GlossType,
   LangSource,
-} from './word-result';
+  KanjiResult,
+} from '@birchill/hikibiki-data';
+
 import {
   getReferenceValue,
   getSelectedReferenceLabels,
   ReferenceAbbreviation,
 } from './refs';
+import { NameResult, Sense, WordResult } from './search-result';
 
 export type Entry =
   | { type: 'word'; data: WordResult }
   | { type: 'name'; data: NameResult }
   | { type: 'kanji'; data: KanjiResult };
+
+type Headword = WordResult['k'][0] | WordResult['r'][0];
 
 export function getWordToCopy(entry: Entry): string {
   let result: string;
@@ -27,10 +27,8 @@ export function getWordToCopy(entry: Entry): string {
       {
         const headwords =
           entry.data.k && entry.data.k.length ? entry.data.k : entry.data.r;
-        result = (headwords as Array<ExtendedKanjiEntry | ExtendedKanaEntry>)
-          .map(
-            (entry: ExtendedKanjiEntry | ExtendedKanaEntry): string => entry.ent
-          )
+        result = (headwords as Array<Headword>)
+          .map((entry: Headword): string => entry.ent)
           .join(', ');
       }
       break;
@@ -161,9 +159,14 @@ export function getEntryToCopy(
 function serializeDefinition(entry: WordResult): string {
   const senses = entry.s;
   if (senses.length > 1) {
-    return senses
-      .map((sense, index) => `(${index + 1}) ${serializeSense(sense)}`)
-      .join(' ');
+    const nativeSenses = senses
+      .filter((s) => s.lang && s.lang !== 'en')
+      .map((s) => `• ${serializeSense(s)}`);
+    const enSenses = senses
+      .filter((s) => !s.lang || s.lang === 'en')
+      .map((s, index) => `(${index + 1}) ${serializeSense(s)}`);
+
+    return [...nativeSenses, ...enSenses].join(' ');
   } else {
     return serializeSense(senses[0]);
   }
@@ -191,7 +194,7 @@ const dialects: { [dial in Dialect]: string } = {
   ok: 'rkb:',
 };
 
-function serializeSense(sense: ExtendedSense): string {
+function serializeSense(sense: Sense): string {
   let result = '';
 
   result += sense.pos ? `(${sense.pos.join(',')}) ` : '';

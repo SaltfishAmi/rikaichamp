@@ -10,7 +10,16 @@
 // * Provides a snapshot of all options with their default values filled-in for
 //   passing to the content process.
 
+import Bugsnag from '@bugsnag/browser';
+
 import { dbLanguages, DbLanguageId } from './db-languages';
+import { ExtensionStorageError } from './extension-storage-error';
+import {
+  AccentDisplay,
+  ContentConfig,
+  KeyboardKeys,
+  PartOfSpeechDisplay,
+} from './content-config';
 import {
   ReferenceAbbreviation,
   convertLegacyReference,
@@ -472,10 +481,7 @@ export class Config {
     // deprecated a language or we synced a value from a newer version of the
     // extension.
     if (this._settings.dictLang) {
-      const availableLanguages = new Set(dbLanguages);
-      if (availableLanguages.has(this._settings.dictLang)) {
-        return false;
-      }
+      return !dbLanguages.includes(this._settings.dictLang);
     }
 
     return true;
@@ -498,17 +504,31 @@ export class Config {
       return;
     }
 
-    // Note that we don't need to check that `valud` is valid since TypeScript
+    // Note that we don't need to check that `value` is valid since TypeScript
     // does that for us.
 
     // If the value to set matches the default we clear the setting. This is so
     // that if we later support one of the user's more preferred languages we
     // can update them automatically.
     if (value === this.getDefaultLang()) {
-      browser.storage.sync.remove('dictLang');
+      browser.storage.sync.remove('dictLang').catch(() => {
+        Bugsnag.notify(
+          new ExtensionStorageError({ key: 'dictLang', action: 'remove' }),
+          (event) => {
+            event.severity = 'warning';
+          }
+        );
+      });
       delete this._settings.dictLang;
     } else {
-      browser.storage.sync.set({ dictLang: value });
+      browser.storage.sync.set({ dictLang: value }).catch(() => {
+        Bugsnag.notify(
+          new ExtensionStorageError({ key: 'dictLang', action: 'set' }),
+          (event) => {
+            event.severity = 'warning';
+          }
+        );
+      });
       this._settings.dictLang = value;
     }
   }
@@ -577,18 +597,19 @@ export class Config {
   // Get all the options the content process cares about at once
   get contentConfig(): ContentConfig {
     return {
-      showPriority: this.showPriority,
-      readingOnly: this.readingOnly,
       accentDisplay: this.accentDisplay,
-      posDisplay: this.posDisplay,
-      kanjiReferences: this.kanjiReferences,
-      showKanjiComponents: this.showKanjiComponents,
+      dictLang: this.dictLang,
       holdToShowKeys: this.holdToShowKeys
         ? (this.holdToShowKeys.split('+') as Array<'Ctrl' | 'Alt'>)
         : [],
+      kanjiReferences: this.kanjiReferences,
       keys: this.keys,
       noTextHighlight: this.noTextHighlight,
       popupStyle: this.popupStyle,
+      posDisplay: this.posDisplay,
+      readingOnly: this.readingOnly,
+      showPriority: this.showPriority,
+      showKanjiComponents: this.showKanjiComponents,
     };
   }
 }

@@ -427,7 +427,7 @@
     "description": "Tooltip displayed when the user attempts to set a hotkey combination including both Ctrl and Alt in a version of Firefox later than 63"
   },
   "error_loading_dictionary": {
-    "message": "辞書の読み込みが失敗しました。もう一度有効してみてください。",
+    "message": "辞書の読み込みが失敗しました。もう一度有効にしてみてください。",
     "description": "Tooltip shown when the dictionary fails to load"
   },
   "extension_description": {
@@ -1265,8 +1265,8 @@
     }
   },
   "options_data_source": {
-    "message": "使用しているデータにKANJIDICおよびJMnedict/ENAMDICTのデータが含まれております。",
-    "description": "Attribute of source data. Both the strings 'KANJIDIC' and 'JMnedict/ENAMDICT' must appear so that they can be link-ified to the corresponding project home pages."
+    "message": "使用しているデータにJMDict/EDICT、KANJIDICおよびJMnedict/ENAMDICTのデータが含まれております。",
+    "description": "Attribute of source data. The strings 'JMdict/EDICT', 'KANJIDIC' and 'JMnedict/ENAMDICT' must appear so that they can be link-ified to the corresponding project home pages."
   },
   "options_database_unavailable": {
     "message": "データベースストレージ利用不可",
@@ -1289,6 +1289,16 @@
       "nextretry": {
         "content": "$1",
         "example": "2019-10-14 17:44"
+      }
+    }
+  },
+  "options_db_update_quota_error": {
+    "message": "ディスクの空き容量が不足しています。(およそ $quota$ 利用可)",
+    "description": "Label when we failed to update the data for some reason",
+    "placeholders": {
+      "quota": {
+        "content": "$1",
+        "example": "The amount of disk space available, formatted as a file size."
       }
     }
   },
@@ -1364,6 +1374,32 @@
   "options_keyboard_heading": {
     "message": "キーボード",
     "description": "Heading for options to configure keyboard commands"
+  },
+  "options_lang_kanji_only": {
+    "message": "（漢字データのみ）",
+    "decsription": "Annotation added to language labels for languages where only the kanji data has been translated (i.e. but not the word data)"
+  },
+  "options_lang_warning_always_en": {
+    "message": "単語の場合、英語の定義は常に表示されます。"
+  },
+  "options_lang_warning_change_lang_redownload": {
+    "message": "言語を変更する際、データファイルが再ダウンロードされます。"
+  },
+  "options_lang_warning_names_en_only": {
+    "message": "人名辞典のデータは英語のみとなっております。"
+  },
+  "options_lang_warning_other_lang_when_available": {
+    "message": "英語以外の単語の定義は利用可能な場合のみに表示されます。"
+  },
+  "options_lang_warning_please_note": {
+    "message": "ご了承ください："
+  },
+  "options_lang_warning_temporary_en_fallback": {
+    "message": "単語データを更新する途中、英語のデータが一時的に利用されることがあります。"
+  },
+  "options_lang_words_only": {
+    "message": "（単語データのみ）",
+    "decsription": "Annotation added to language labels for languages where only the word data has been translated (i.e. but not the kanji data)"
   },
   "options_last_database_check": {
     "message": "更新確認時刻 $lastcheck$",
@@ -1442,7 +1478,7 @@
     "description": "Label for hiding part-of-speech labels"
   },
   "options_show_context_menu_item": {
-    "message": "コンテキストメニューに「Rikaichampを有効する」を表示",
+    "message": "コンテキストメニューに「Rikaichampを有効にする」を表示",
     "description": "Option to enable context menu item with label `menu_enable_extension`"
   },
   "options_show_definitions": {
@@ -1479,6 +1515,20 @@
   },
   "options_warning_language_is_kanji_only": {
     "message": "この設定は現在漢字辞典のみに適用されます。"
+  },
+  "options_words_data_name": {
+    "message": "単語データ",
+    "description": "The name for the words database data set"
+  },
+  "options_words_data_title": {
+    "message": "単語データ v$version$",
+    "description": "The word data series title and version",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "2.0.0"
+      }
+    }
   },
   "pos_label_adj_f": {
     "message": "連体",

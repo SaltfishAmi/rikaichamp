@@ -1,6 +1,15 @@
-import { KanjiResult, NameTranslation } from '@birchill/hikibiki-data';
+import {
+  Gloss,
+  GlossType,
+  KanjiInfo,
+  KanjiResult,
+  LangSource,
+  NameTranslation,
+  ReadingInfo,
+} from '@birchill/hikibiki-data';
 import { countMora, moraSubstring } from '@birchill/normal-jp';
 
+import { AccentDisplay, PartOfSpeechDisplay } from './content-config';
 import {
   CopyKeys,
   CopyType,
@@ -16,16 +25,8 @@ import {
   getSelectedReferenceLabels,
   ReferenceAbbreviation,
 } from './refs';
+import { NameResult, Sense, WordResult } from './search-result';
 import { isForeignObjectElement, isSvgDoc, SVG_NS } from './svg';
-import {
-  ExtendedKanaEntry,
-  ExtendedSense,
-  Gloss,
-  GlossType,
-  KanjiInfo,
-  LangSource,
-  ReadingInfo,
-} from './word-result';
 import { EraInfo, getEraInfo } from './years';
 
 import popupStyles from '../css/popup.css';
@@ -46,6 +47,7 @@ export interface PopupOptions {
   copyState?: CopyState;
   // Set when copyState === CopyState.Finished
   copyType?: CopyType;
+  dictLang?: string;
   document?: Document;
   kanjiReferences: Array<ReferenceAbbreviation>;
   meta?: SelectionMeta;
@@ -142,6 +144,9 @@ function getDefaultContainer(doc: Document): HTMLElement {
   container.style.left = '5px';
   container.style.minWidth = '100px';
 
+  // Enforce any max-height set on the container.
+  container.style.overflowY = 'hidden';
+
   // Make sure the container too doesn't receive pointer events
   container.style.pointerEvents = 'none';
 
@@ -186,6 +191,13 @@ function resetContainer(
   const windowDiv = doc.createElement('div');
   windowDiv.classList.add('window', `-${popupStyle}`);
   container.shadowRoot!.append(windowDiv);
+
+  // Reset the container position so we can consistently measure the size of
+  // the popup
+  container.style.left = '5px';
+  container.style.top = '5px';
+  container.style.maxWidth = 'initial';
+  container.style.maxHeight = 'initial';
 
   return windowDiv;
 }
@@ -475,7 +487,7 @@ function renderBonusNames(
 }
 
 function renderKana(
-  kana: ExtendedKanaEntry,
+  kana: WordResult['r'][0],
   options: PopupOptions
 ): string | Element {
   const accents = kana.a;
@@ -629,14 +641,36 @@ function renderStar(style: 'full' | 'hollow'): SVGElement {
 function renderDefinitions(entry: WordResult, options: PopupOptions) {
   const definitionsDiv = document.createElement('div');
   definitionsDiv.classList.add('w-def');
-  // Currently all definitions are in English
-  definitionsDiv.lang = 'en';
 
   if (entry.s.length === 1) {
     definitionsDiv.append(renderSense(entry.s[0], options));
+    definitionsDiv.lang = entry.s[0].lang || 'en';
+    if (
+      options.dictLang &&
+      options.dictLang !== 'en' &&
+      entry.s[0].lang !== options.dictLang
+    ) {
+      definitionsDiv.classList.add('foreign');
+    }
   } else {
-    // Try grouping the definitions by part-of-speech.
-    const posGroups = options.posDisplay !== 'none' ? groupSenses(entry.s) : [];
+    // First extract any native language senses
+    const nativeSenses = entry.s.filter((s) => s.lang && s.lang !== 'en');
+    if (nativeSenses.length) {
+      const definitionList = document.createElement('ul');
+      for (const sense of nativeSenses) {
+        const listItem = document.createElement('li');
+        listItem.lang = sense.lang || 'en';
+        listItem.append(renderSense(sense, options));
+        definitionList.append(listItem);
+      }
+      definitionsDiv.append(definitionList);
+    }
+
+    // Try grouping the remaining (English) definitions by part-of-speech.
+    const enSenses = entry.s.filter((s) => !s.lang || s.lang === 'en');
+    const posGroups =
+      options.posDisplay !== 'none' ? groupSenses(enSenses) : [];
+    const isForeign = !!options.dictLang && options.dictLang !== 'en';
 
     // Determine if the grouping makes sense
     //
@@ -644,8 +678,8 @@ function renderDefinitions(entry: WordResult, options: PopupOptions) {
     // all the senses (ignoring word wrapping) grow by more than 50%, we should
     // skip using groups. This will typically be the case where there are no
     // common parts-of-speech, or at least very few.
-    const linesWithGrouping = posGroups.length + entry.s.length;
-    const linesWithoutGrouping = entry.s.length;
+    const linesWithGrouping = posGroups.length + enSenses.length;
+    const linesWithoutGrouping = enSenses.length;
     const useGroups =
       posGroups.length && linesWithGrouping / linesWithoutGrouping <= 1.5;
 
@@ -695,7 +729,9 @@ function renderDefinitions(entry: WordResult, options: PopupOptions) {
         definitionList.start = startIndex;
         for (const sense of group.senses) {
           const listItem = document.createElement('li');
+          listItem.lang = sense.lang || 'en';
           listItem.append(renderSense(sense, options));
+          listItem.classList.toggle('foreign', isForeign);
           definitionList.append(listItem);
           startIndex++;
         }
@@ -703,9 +739,11 @@ function renderDefinitions(entry: WordResult, options: PopupOptions) {
       }
     } else {
       const definitionList = document.createElement('ol');
-      for (const sense of entry.s) {
+      for (const sense of enSenses) {
         const listItem = document.createElement('li');
+        listItem.lang = sense.lang || 'en';
         listItem.append(renderSense(sense, options));
+        listItem.classList.toggle('foreign', isForeign);
         definitionList.append(listItem);
       }
       definitionsDiv.append(definitionList);
@@ -716,9 +754,8 @@ function renderDefinitions(entry: WordResult, options: PopupOptions) {
 }
 
 function renderSense(
-  sense: ExtendedSense,
-  options: PopupOptions,
-  previousSense?: ExtendedSense
+  sense: Sense,
+  options: PopupOptions
 ): string | DocumentFragment {
   const fragment = document.createDocumentFragment();
 

@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Rikaichamp",
   "author": "Brian Birtles",
-  "version": "0.3.3-SaltfishAmi-Custom-2",
+  "version": "0.4.0-SaltfishAmi-Custom-3",
   /*#if supports_applications_field*/
   "applications": {
     "gecko": {

@@ -1,20 +1,22 @@
 const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const WebExtWebpackPlugin = require('web-ext-webpack-plugin');
+const WebExtPlugin = require('web-ext-plugin');
+const {
+  BugsnagBuildReporterPlugin,
+  BugsnagSourceMapUploaderPlugin,
+} = require('webpack-bugsnag-plugins');
+const pjson = require('./package.json');
 
-// Look for a --firefox <path> argument
-const firefoxIndex = process.argv.indexOf('--firefox');
-const firefox =
-  firefoxIndex !== -1 && firefoxIndex < process.argv.length - 1
-    ? process.argv[firefoxIndex + 1]
-    : undefined;
-
-// Likewise for firefoxProfile
-const firefoxProfileIndex = process.argv.indexOf('--firefoxProfile');
-const firefoxProfile =
-  firefoxProfileIndex !== -1 && firefoxProfileIndex < process.argv.length - 1
-    ? process.argv[firefoxProfileIndex + 1]
-    : undefined;
+// Look for an --env arguments to pass along when running Firefox
+const env = Object.fromEntries(
+  process.argv
+    .filter((_arg, index, args) => index && args[index - 1] === '--env')
+    .map((kv) => (kv.indexOf('=') === -1 ? [kv, true] : kv.split('=')))
+);
+const firefox = env.firefox || undefined;
+const firefoxProfile = env.firefoxProfile || undefined;
+const keepProfileChanges = !!env.keepProfileChanges;
+const profileCreateIfMissing = !!env.profileCreateIfMissing;
 
 const commonConfig = {
   // No need for uglification etc.
@@ -105,14 +107,40 @@ const firefoxConfig = {
         '_locales/**/*',
       ],
     }),
-    new WebExtWebpackPlugin({
+    new WebExtPlugin({
       firefox,
       firefoxProfile,
+      keepProfileChanges,
+      profileCreateIfMissing,
       startUrl: ['tests/playground.html'],
       sourceDir: path.resolve(__dirname, 'dist-firefox'),
     }),
   ],
 };
+
+if (process.env.RELEASE_BUILD && process.env.BUGSNAG_API_KEY) {
+  firefoxConfig.plugins.push(
+    new BugsnagBuildReporterPlugin(
+      {
+        apiKey: process.env.BUGSNAG_API_KEY,
+        appVersion: pjson.version,
+      },
+      {}
+    )
+  );
+  firefoxConfig.plugins.push(
+    new BugsnagSourceMapUploaderPlugin(
+      {
+        apiKey: process.env.BUGSNAG_API_KEY,
+        appVersion: pjson.version,
+        ignoredBundleExtensions: ['.css', '.json', '.idx', '.svg', '.html'],
+        publicPath: `https://github.com/birtles/rikaichamp/releases/download/v${pjson.version}/`,
+        overwrite: true,
+      },
+      {}
+    )
+  );
+}
 
 const chromeConfig = {
   ...commonExtConfig,
@@ -134,7 +162,7 @@ const chromeConfig = {
         'images/*',
         'data/*',
         '_locales/**/*',
-        { from: 'lib/browser-polyfill.js*', to: '[name].[ext]' },
+        { from: 'lib/browser-polyfill.js*', to: '[name][ext]' },
       ],
     }),
   ],
